@@ -1,11 +1,11 @@
 import pygame, random, sys
 from pygame.locals import * 
 
-WINDOWWIDTH = 1400
-WINDOWHEIGHT = 800
+WINDOWWIDTH = 600
+WINDOWHEIGHT = 600
 TEXTCOLOR = (0, 0, 0)
-BACKGROUNDCOLOR = (0, 0, 255) #chercher sur internet quel combinaison de chiffre pour une color
-FPS = 20
+BACKGROUNDCOLOR = (255, 255, 255) #chercher sur internet quel combinaison de chiffre pour une color
+FPS = 60
 BADDIEMINSIZE = 10
 BADDIEMAXSIZE = 40
 BADDIEMINSPEED = 1
@@ -54,9 +54,9 @@ gameOverSound = pygame.mixer.Sound('gameover.wav')
 pygame.mixer.music.load('background.mid')
 
 # Set up images.
-playerImage = pygame.image.load('zemour.png')
+playerImage = pygame.image.load('player.png')
 playerRect = playerImage.get_rect()
-baddieImage = pygame.image.load('algerie.png')
+baddieImage = pygame.image.load('baddie.png')
 
 # Show the "Start" screen.
 windowSurface.fill(BACKGROUNDCOLOR)
