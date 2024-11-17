@@ -1,11 +1,14 @@
 import pygame, random, sys
-from pygame.locals import * 
+from pygame.locals import *
+
+from FPS import FPS
 
 WINDOWWIDTH = 600
 WINDOWHEIGHT = 600
 TEXTCOLOR = (0, 0, 0)
-BACKGROUNDCOLOR = (255, 255, 255) #chercher sur internet quel combinaison de chiffre pour une color
 FPS = 60
+
+BACKGROUNDCOLOR = (255, 255, 255)
 BADDIEMINSIZE = 10
 BADDIEMAXSIZE = 40
 BADDIEMINSPEED = 1
@@ -67,6 +70,7 @@ waitForPlayerToPressKey()
 
 topScore = 0
 while True:
+    
     # Set up the start of the game.
     baddies = []
     score = 0
@@ -163,6 +167,7 @@ while True:
 
         # Draw the game world on the window.
         windowSurface.fill(BACKGROUNDCOLOR)
+
 
         # Draw the score and top score.
         drawText('Score: %s' % (score), font, windowSurface, 10, 0)
