@@ -1,17 +1,22 @@
 import pygame, random, sys
 from pygame.locals import *
 
+from FPS import FPS
+
 WINDOWWIDTH = 600
 WINDOWHEIGHT = 600
 TEXTCOLOR = (0, 0, 0)
+FPS = 60
+
 BACKGROUNDCOLOR = (255, 255, 255)
-FPS = 30
 BADDIEMINSIZE = 10
 BADDIEMAXSIZE = 40
 BADDIEMINSPEED = 1
 BADDIEMAXSPEED = 8
 ADDNEWBADDIERATE = 6
 PLAYERMOVERATE = 5
+
+PLAYER_COLOR_BLUE = 1
 
 def terminate():
     pygame.quit()
@@ -55,18 +60,27 @@ pygame.mixer.music.load('background.mid')
 
 # Set up images.
 playerImage = pygame.image.load('player.png')
+#playerImageBlue = pygame.image.load('...')
 playerRect = playerImage.get_rect()
 baddieImage = pygame.image.load('baddie.png')
+backgroundImage = pygame.image.load('background.png')
+
+# Resize background image to the screen size
+backgroundImage = pygame.transform.scale(backgroundImage, windowSurface.get_size())
 
 # Show the "Start" screen.
 windowSurface.fill(BACKGROUNDCOLOR)
+windowSurface.blit(backgroundImage, (0,0))
 drawText('Dodger', font, windowSurface, (WINDOWWIDTH / 3), (WINDOWHEIGHT / 3))
 drawText('Press a key to start.', font, windowSurface, (WINDOWWIDTH / 3) - 30, (WINDOWHEIGHT / 3) + 50)
 pygame.display.update()
 waitForPlayerToPressKey()
 
+# Default game values
+color = PLAYER_COLOR_BLUE
 topScore = 0
 while True:
+    
     # Set up the start of the game.
     baddies = []
     score = 0
@@ -82,6 +96,8 @@ while True:
         for event in pygame.event.get():
             if event.type == QUIT:
                 terminate()
+
+            # --------- Controls ---------
 
             if event.type == KEYDOWN:
                 if event.key == K_z:
@@ -100,6 +116,10 @@ while True:
                 if event.key == K_DOWN or event.key == K_s:
                     moveUp = False
                     moveDown = True
+                #variables pour les codes couleur des touches
+                if event.key == K_1:
+                    color = PLAYER_COLOR_BLUE
+
 
             if event.type == KEYUP:
                 if event.key == K_z:
@@ -124,6 +144,9 @@ while True:
                 # If the mouse moves, move the player where to the cursor.
                 playerRect.centerx = event.pos[0]
                 playerRect.centery = event.pos[1]
+
+        # --------- Adding bad guys --------- 
+
         # Add new baddies at the top of the screen, if needed.
         if not reverseCheat and not slowCheat:
             baddieAddCounter += 1
@@ -136,6 +159,8 @@ while True:
                         }
 
             baddies.append(newBaddie)
+
+        # --------- Movements ---------
 
         # Move the player around.
         if moveLeft and playerRect.left > 0:
@@ -161,14 +186,20 @@ while True:
             if b['rect'].top > WINDOWHEIGHT:
                 baddies.remove(b)
 
-        # Draw the game world on the window.
+        # --------- Display everything on the window. ---------
+        # Window clear
         windowSurface.fill(BACKGROUNDCOLOR)
+        # Redraw background image
+        windowSurface.blit(backgroundImage, (0,0))
+
 
         # Draw the score and top score.
         drawText('Score: %s' % (score), font, windowSurface, 10, 0)
         drawText('Top Score: %s' % (topScore), font, windowSurface, 10, 40)
 
         # Draw the player's rectangle.
+        #if color == PLAYER_COLOR_BLUE:
+        #    windowSurface.blit(playerImageBlue, playerRect)
         windowSurface.blit(playerImage, playerRect)
 
         # Draw each baddie.
