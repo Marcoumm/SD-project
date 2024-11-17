@@ -9,14 +9,41 @@ TEXTCOLOR = (0, 0, 0)
 FPS = 60
 
 BACKGROUNDCOLOR = (255, 255, 255)
+
 BADDIEMINSIZE = 10
 BADDIEMAXSIZE = 40
 BADDIEMINSPEED = 1
 BADDIEMAXSPEED = 8
 ADDNEWBADDIERATE = 6
+
+GOODFOODMINSIZE = 10
+GOODFOODMAXSIZE = 30
+GOODFOODMINSPEED = 1
+GOODFOODMAXSPEED = 8
+
+BADFOODMINSIZE = 50
+BADFOODMAXSIZE = 80
+BADFOODMINSPEED = 2
+BADFOODMAXSPEED = 8
+ADDNEWBADFOODRATE = 8
+
+PREDATORMINSIZE = 10
+PREDATORMAXSIZE = 30
+PREDATORMINSPEED = 1
+PREDATORMAXSPEED = 8
+
 PLAYERMOVERATE = 5
 
-PLAYER_COLOR_BLUE = 1
+#color
+PLAYER_COLOR_GREEN = 1
+PLAYER_COLOR_RED = 2
+PLAYER_COLOR_YELLOW = 3
+PLAYER_COLOR_BLUE = 4
+
+#type of food: good, toxic and predator
+GOODFOOD = "good"
+BADFOOD = "bad"
+PREDATOR = "predator"
 
 def terminate():
     pygame.quit()
@@ -32,8 +59,8 @@ def waitForPlayerToPressKey():
                     terminate()
                 return
 
-def playerHasHitBaddie(playerRect, baddies):
-    for b in baddies:
+def playerHasHitBadFood(playerRect, BadFood):
+    for b in BadFood:
         if playerRect.colliderect(b['rect']):
             return True
     return False
@@ -50,19 +77,49 @@ mainClock = pygame.time.Clock()
 windowSurface = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
 pygame.display.set_caption('Dodger')
 pygame.mouse.set_visible(False)
-
 # Set up the fonts.
 font = pygame.font.SysFont(None, 48)
 
 # Set up sounds.
 gameOverSound = pygame.mixer.Sound('gameover.wav')
-pygame.mixer.music.load('background.mid')
+pygame.mixer.music.load('jungle.wav')
 
 # Set up images.
-playerImage = pygame.image.load('player.png')
-#playerImageBlue = pygame.image.load('...')
-playerRect = playerImage.get_rect()
+# all our color cameleon
+playerImageBlue = pygame.image.load('camblue.png')
+playerImageGreen = pygame.image.load('camgreen.png')
+playerImageRed = pygame.image.load('camred.png')
+playerImageYellow = pygame.image.load('camyellow.png')
+#image scale
+playerImageGreen = pygame.transform.scale(playerImageGreen, (70, 70))
+playerImageBlue = pygame.transform.scale(playerImageBlue, (70, 70))
+playerImageRed = pygame.transform.scale(playerImageRed, (70, 70))
+playerImageYellow = pygame.transform.scale(playerImageYellow, (70, 70))
+
+
+playerRect = playerImageGreen.get_rect()
+
+# set up food 
+foodGreen = pygame.image.load("grasshoppergreen.png")
+foodRed = pygame.image.load("grasshopperred.png")
+foodYellow = pygame.image.load("grasshopperyellow.png")
+foodBlue = pygame.image.load("grasshopperblue.png")
+# image scale 
+foodGreen = pygame.transform.scale(foodGreen, (70,70))
+foodRed = pygame.transform.scale(foodRed, (70,70))
+foodYellow = pygame.transform.scale(foodYellow, (70,70))
+foodBlue = pygame.transform.scale(foodBlue, (70,70))
+
+#set up toxic food or predators
 baddieImage = pygame.image.load('baddie.png')
+badGreen = pygame.image.load("cheesegreen.png")
+badRed = pygame.image.load("cheesered.png")
+badYellow = pygame.image.load("cheeseyellow.png")
+badBlue = pygame.image.load("cheeseblue.png")
+#image scale
+
+
+#set up background
 backgroundImage = pygame.image.load('background.png')
 
 # Resize background image to the screen size
@@ -70,24 +127,34 @@ backgroundImage = pygame.transform.scale(backgroundImage, windowSurface.get_size
 
 # Show the "Start" screen.
 windowSurface.fill(BACKGROUNDCOLOR)
+#insert our background to the screen
 windowSurface.blit(backgroundImage, (0,0))
-drawText('Dodger', font, windowSurface, (WINDOWWIDTH / 3), (WINDOWHEIGHT / 3))
+drawText('Jungle Chameleon', font, windowSurface, (WINDOWWIDTH / 3), (WINDOWHEIGHT / 3))
 drawText('Press a key to start.', font, windowSurface, (WINDOWWIDTH / 3) - 30, (WINDOWHEIGHT / 3) + 50)
 pygame.display.update()
 waitForPlayerToPressKey()
 
 # Default game values
-color = PLAYER_COLOR_BLUE
+currentColor = PLAYER_COLOR_GREEN
 topScore = 0
 while True:
     
     # Set up the start of the game.
-    baddies = []
+    GoodFood = []
+    BadFood = []
+    #create a dictionary
+    #chgreen as cheese green, chred as cheese red... tlgreen as chocolate green and so and so..
+    BadFoodImages = {
+        "chgreen": badGreen,
+        "chred": badRed,
+        "chyellow": badYellow,
+        "chblue": badBlue
+    }
     score = 0
-    playerRect.topleft = (WINDOWWIDTH / 2, WINDOWHEIGHT - 50)
-    moveLeft = moveRight = moveUp = moveDown = False
+    playerRect.topleft = (WINDOWWIDTH / 2, WINDOWHEIGHT -70)
+    moveLeft = moveRight = False
     reverseCheat = slowCheat = False
-    baddieAddCounter = 0
+    BadFoodAddCounter = 0
     pygame.mixer.music.play(-1, 0.0)
 
     while True: # The game loop runs while the game part is playing.
@@ -110,15 +177,18 @@ while True:
                 if event.key == K_RIGHT or event.key == K_d:
                     moveLeft = False
                     moveRight = True
-                if event.key == K_UP or event.key == K_w:
-                    moveDown = False
-                    moveUp = True
-                if event.key == K_DOWN or event.key == K_s:
-                    moveUp = False
-                    moveDown = True
+
+        #importer keys 
+            keys = pygame.key.get_pressed()
                 #variables pour les codes couleur des touches
-                if event.key == K_1:
-                    color = PLAYER_COLOR_BLUE
+            if keys[pygame.K_1]:
+                currentColor = PLAYER_COLOR_GREEN
+            if keys[pygame.K_2]:
+                currentColor = PLAYER_COLOR_RED
+            if keys[pygame.K_3]:
+                currentColor = PLAYER_COLOR_YELLOW
+            if keys[pygame.K_4]:
+                currentColor = PLAYER_COLOR_BLUE
 
 
             if event.type == KEYUP:
@@ -129,36 +199,33 @@ while True:
                     slowCheat = False
                     score = 0
                 if event.key == K_ESCAPE:
-                        terminate()
+                    terminate()
 
                 if event.key == K_LEFT or event.key == K_a:
                     moveLeft = False
                 if event.key == K_RIGHT or event.key == K_d:
                     moveRight = False
-                if event.key == K_UP or event.key == K_w:
-                    moveUp = False
-                if event.key == K_DOWN or event.key == K_s:
-                    moveDown = False
 
-            if event.type == MOUSEMOTION:
-                # If the mouse moves, move the player where to the cursor.
-                playerRect.centerx = event.pos[0]
-                playerRect.centery = event.pos[1]
 
         # --------- Adding bad guys --------- 
 
-        # Add new baddies at the top of the screen, if needed.
-        if not reverseCheat and not slowCheat:
-            baddieAddCounter += 1
-        if baddieAddCounter == ADDNEWBADDIERATE:
-            baddieAddCounter = 0
-            baddieSize = random.randint(BADDIEMINSIZE, BADDIEMAXSIZE)
-            newBaddie = {'rect': pygame.Rect(random.randint(0, WINDOWWIDTH - baddieSize), 0 - baddieSize, baddieSize, baddieSize),
-                        'speed': random.randint(BADDIEMINSPEED, BADDIEMAXSPEED),
-                        'surface':pygame.transform.scale(baddieImage, (baddieSize, baddieSize)),
-                        }
+        # Add new bad food at the top of the screen, if needed.
+            if not reverseCheat and not slowCheat:
+                BadFoodAddCounter += 1
 
-            baddies.append(newBaddie)
+            if BadFoodAddCounter == ADDNEWBADFOODRATE:
+                BadFoodAddCounter = 0
+                BadFoodSize = random.randint(BADFOODMINSIZE, BADFOODMAXSIZE)
+            #take key of the dictionary
+                badFoodTypes = list(BadFoodImages.keys())
+    
+            # chose a random type
+                chosenType = random.choice(badFoodTypes)
+                newBadFood = {'rect': pygame.Rect(random.randint(0, WINDOWWIDTH - BadFoodSize), 0 - BadFoodSize, BadFoodSize, BadFoodSize),
+                        'speed': random.randint(BADFOODMINSPEED, BADFOODMAXSPEED),
+                        'surface': pygame.transform.scale(BadFoodImages[chosenType], (BadFoodSize, BadFoodSize)),
+                        'type': chosenType}
+                BadFood.append(newBadFood)
 
         # --------- Movements ---------
 
@@ -167,13 +234,10 @@ while True:
             playerRect.move_ip(-1 * PLAYERMOVERATE, 0)
         if moveRight and playerRect.right < WINDOWWIDTH:
             playerRect.move_ip(PLAYERMOVERATE, 0)
-        if moveUp and playerRect.top > 0:
-            playerRect.move_ip(0, -1 * PLAYERMOVERATE)
-        if moveDown and playerRect.bottom < WINDOWHEIGHT:
-            playerRect.move_ip(0, PLAYERMOVERATE)
+
 
         # Move the baddies down.
-        for b in baddies:
+        for b in BadFood:
             if not reverseCheat and not slowCheat:
                 b['rect'].move_ip(0, b['speed'])
             elif reverseCheat:
@@ -182,9 +246,9 @@ while True:
                 b['rect'].move_ip(0, 1)
 
         # Delete baddies that have fallen past the bottom.
-        for b in baddies[:]:
+        for b in BadFood[:]:
             if b['rect'].top > WINDOWHEIGHT:
-                baddies.remove(b)
+                BadFood.remove(b)
 
         # --------- Display everything on the window. ---------
         # Window clear
@@ -192,24 +256,29 @@ while True:
         # Redraw background image
         windowSurface.blit(backgroundImage, (0,0))
 
+        # Draw player's rectangle
+        if currentColor == PLAYER_COLOR_GREEN:
+            windowSurface.blit(playerImageGreen, playerRect)
+        elif currentColor == PLAYER_COLOR_RED:
+            windowSurface.blit(playerImageRed, playerRect)
+        elif currentColor == PLAYER_COLOR_YELLOW:
+            windowSurface.blit(playerImageYellow, playerRect)
+        elif currentColor == PLAYER_COLOR_BLUE:
+            windowSurface.blit(playerImageBlue, playerRect)
+
 
         # Draw the score and top score.
         drawText('Score: %s' % (score), font, windowSurface, 10, 0)
         drawText('Top Score: %s' % (topScore), font, windowSurface, 10, 40)
 
-        # Draw the player's rectangle.
-        #if color == PLAYER_COLOR_BLUE:
-        #    windowSurface.blit(playerImageBlue, playerRect)
-        windowSurface.blit(playerImage, playerRect)
-
         # Draw each baddie.
-        for b in baddies:
-            windowSurface.blit(b['surface'], b['rect'])
+        for b in BadFood:
+            windowSurface.blit(b["surface"], b["rect"])
 
         pygame.display.update()
 
         # Check if any of the baddies have hit the player.
-        if playerHasHitBaddie(playerRect, baddies):
+        if playerHasHitBadFood(playerRect, BadFood):
             if score > topScore:
                 topScore = score # set new top score
             break
