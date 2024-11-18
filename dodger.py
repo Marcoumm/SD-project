@@ -12,20 +12,20 @@ BACKGROUNDCOLOR = (255, 255, 255)
 
 GOODFOODMINSIZE = 50
 GOODFOODMAXSIZE = 80
-GOODFOODMINSPEED = 2 
-GOODFOODMAXSPEED = 8
+GOODFOODMINSPEED = 2
+GOODFOODMAXSPEED = 4
 ADDNEWGOODFOODRATE = 40 
 
 BADFOODMINSIZE = 40
 BADFOODMAXSIZE = 80
-BADFOODMINSPEED = 2
-BADFOODMAXSPEED = 8
+BADFOODMINSPEED = 1
+BADFOODMAXSPEED = 5
 ADDNEWBADFOODRATE = 8
 
 PREDATORMINSIZE = 10
 PREDATORMAXSIZE = 30
 PREDATORMINSPEED = 1
-PREDATORMAXSPEED = 8
+PREDATORMAXSPEED = 5
 
 PLAYERMOVERATE = 5
 
@@ -170,6 +170,7 @@ waitForPlayerToPressKey()
 # Default game values
 currentColor = PLAYER_COLOR_GREEN
 topScore = 0
+speedMultiplier = 1.0
 while True:
 	
 	# Set up the start of the game.
@@ -294,18 +295,19 @@ while True:
 		if moveRight and playerRect.right < WINDOWWIDTH:
 			playerRect.move_ip(PLAYERMOVERATE, 0)
 
-
+		# increase speed game due to score
+		speedMultiplier = 1 + (score//10) * 0.4
 		# Move the baddies down.
 		for b in BadFood:
 			if not reverseCheat and not slowCheat:
-				b['rect'].move_ip(0, b['speed'])
+				b['rect'].move_ip(0, b['speed']*speedMultiplier)
 			elif reverseCheat:
 				b['rect'].move_ip(0, -5)
 			elif slowCheat:
 				b['rect'].move_ip(0, 1)
 		for b in GoodFood:
 			if not reverseCheat and not slowCheat:
-				b['rect'].move_ip(0, b['speed'])
+				b['rect'].move_ip(0, b['speed']*speedMultiplier)
 			elif reverseCheat:
 				b['rect'].move_ip(0, -5)
 			elif slowCheat:
