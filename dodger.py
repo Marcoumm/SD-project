@@ -52,7 +52,9 @@ def waitForPlayerToPressKey():
 			if event.type == KEYDOWN:
 				if event.key == K_ESCAPE: # Pressing ESC quits.
 					terminate()
-				return
+				if event.key == K_RETURN:  # Continue only if ENTER is pressed.
+					return
+				
 
 def playerHasHitBadFood(playerRect, BadFood):
 	for b in BadFood:
@@ -163,7 +165,7 @@ windowSurface.fill(BACKGROUNDCOLOR)
 #insert our background to the screen
 windowSurface.blit(backgroundImage, (0,0))
 drawText('Jungle Chameleon', font, windowSurface, (WINDOWWIDTH / 3), (WINDOWHEIGHT / 3))
-drawText('Press a key to start.', font, windowSurface, (WINDOWWIDTH / 3) - 30, (WINDOWHEIGHT / 3) + 50)
+drawText('Press enter to start.', font, windowSurface, (WINDOWWIDTH / 3) - 30, (WINDOWHEIGHT / 3) + 50)
 pygame.display.update()
 waitForPlayerToPressKey()
 
@@ -372,7 +374,7 @@ while True:
 	gameOverSound.play()
 
 	drawText('GAME OVER', font, windowSurface, (WINDOWWIDTH / 3), (WINDOWHEIGHT / 3))
-	drawText('Press a key to play again.', font, windowSurface, (WINDOWWIDTH / 3) - 80, (WINDOWHEIGHT / 3) + 50)
+	drawText('Press enter to play again.', font, windowSurface, (WINDOWWIDTH / 3) - 80, (WINDOWHEIGHT / 3) + 50)
 	pygame.display.update()
 	waitForPlayerToPressKey()
 
