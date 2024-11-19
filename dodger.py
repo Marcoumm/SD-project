@@ -3,21 +3,23 @@ from pygame.locals import *
 
 from FPS import FPS
 
+pygame.init()
+
 WINDOWWIDTH = 600
 WINDOWHEIGHT = 600
-TEXTCOLOR = (0, 200, 0)
+TEXTCOLOR = (255, 140, 0)
+#font = pygame.font.Font("JungleJunk.ttf", 48)  # Remplacez 'ma_police.ttf' par le chemin de votre fichier de police
 FPS = 60
+BACKGROUNDCOLOR = (210, 255, 200)
 
-BACKGROUNDCOLOR = (255, 255, 255)
-
-GOODFOODMINSIZE = 50
-GOODFOODMAXSIZE = 80
+GOODFOODMINSIZE = 40
+GOODFOODMAXSIZE = 60
 GOODFOODMINSPEED = 2
 GOODFOODMAXSPEED = 4
 ADDNEWGOODFOODRATE = 40 
 
 BADFOODMINSIZE = 40
-BADFOODMAXSIZE = 80
+BADFOODMAXSIZE = 60
 BADFOODMINSPEED = 1
 BADFOODMAXSPEED = 5
 ADDNEWBADFOODRATE = 8
@@ -93,6 +95,8 @@ font = pygame.font.SysFont(None, 48)
 
 # Set up sounds.
 gameOverSound = pygame.mixer.Sound('gameover.wav')
+#diminue volume
+gameOverSound.set_volume(0.1)
 pygame.mixer.music.load('jungle.wav')
 
 # Set up images.
@@ -102,10 +106,10 @@ playerImageGreen = pygame.image.load('camgreen.png')
 playerImageRed = pygame.image.load('camred.png')
 playerImageYellow = pygame.image.load('camyellow.png')
 #image scale
-playerImageGreen = pygame.transform.scale(playerImageGreen, (80, 80))
-playerImageBlue = pygame.transform.scale(playerImageBlue, (80, 80))
-playerImageRed = pygame.transform.scale(playerImageRed, (80, 80))
-playerImageYellow = pygame.transform.scale(playerImageYellow, (80, 80))
+playerImageGreen = pygame.transform.scale(playerImageGreen, (70, 70))
+playerImageBlue = pygame.transform.scale(playerImageBlue, (70, 70))
+playerImageRed = pygame.transform.scale(playerImageRed, (70, 70))
+playerImageYellow = pygame.transform.scale(playerImageYellow, (70, 70))
 
 
 playerRect = playerImageGreen.get_rect()
@@ -115,11 +119,6 @@ foodGreen = pygame.image.load("grasshoppergreen.png")
 foodRed = pygame.image.load("grasshopperred.png")
 foodYellow = pygame.image.load("grasshopperyellow.png")
 foodBlue = pygame.image.load("grasshopperblue.png")
-# image scale 
-#foodGreen = pygame.transform.scale(foodGreen, (70,70))
-#foodRed = pygame.transform.scale(foodRed, (70,70))
-#foodYellow = pygame.transform.scale(foodYellow, (70,70))
-#foodBlue = pygame.transform.scale(foodBlue, (70,70))
 
 #set up toxic food
 badGreen = pygame.image.load("cheesegreen.png")
@@ -152,7 +151,6 @@ SnakeGreen = pygame.image.load("snakegreen.png")
 SnakeRed = pygame.image.load("snakered.png")
 SnakeYellow = pygame.image.load("snakeyellow.png")
 SnakeBlue = pygame.image.load("snakeblue.png")
-
 
 #set up background
 backgroundImage = pygame.image.load('background.png')
