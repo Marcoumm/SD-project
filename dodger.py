@@ -3,14 +3,19 @@ from pygame.locals import *
 
 from FPS import FPS
 
-pygame.init()
+# https://www.w3schools.com/python/python_classes.asp
 
+
+
+#program basic setting
 WINDOWWIDTH = 600
 WINDOWHEIGHT = 600
 TEXTCOLOR = (255, 140, 0)
 #font = pygame.font.Font("JungleJunk.ttf", 48)  # Remplacez 'ma_police.ttf' par le chemin de votre fichier de police
 FPS = 60
 BACKGROUNDCOLOR = (210, 255, 200)
+#create a variable live, player has 3 lives at the beginning
+LIVES = 3
 
 GOODFOODMINSIZE = 40
 GOODFOODMAXSIZE = 60
@@ -22,12 +27,7 @@ BADFOODMINSIZE = 40
 BADFOODMAXSIZE = 60
 BADFOODMINSPEED = 1
 BADFOODMAXSPEED = 5
-ADDNEWBADFOODRATE = 8
-
-PREDATORMINSIZE = 10
-PREDATORMAXSIZE = 30
-PREDATORMINSPEED = 1
-PREDATORMAXSPEED = 5
+ADDNEWBADFOODRATE = 40
 
 PLAYERMOVERATE = 5
 
@@ -41,6 +41,28 @@ PLAYER_COLOR_BLUE = 4
 GOODFOOD = "good"
 BADFOOD = "bad"
 PREDATOR = "predator"
+
+class GameElement:
+    
+	def __init__(self, windowWidth, windowHeight, color, left, top, size, speed, image, touchingSound=None):
+		self.color = color
+		self.rect = pygame.Rect(random.randint(0, windowWidth - size), 0 - size, size, size)
+		self.speed = speed
+		self.surface = pygame.transform.scale(image, (size, size))
+		self.touched = False
+		self.touchingSound = touchingSound
+
+	def touch(self):
+		self.touched = True
+
+	def isTouched(self):
+		return self.touched
+
+	# def playTouchingSound(self):
+		# if self.touchingSound:
+		# 	self.touchingSound.play()
+
+#create my function
 
 def terminate():
 	pygame.quit()
@@ -58,31 +80,58 @@ def waitForPlayerToPressKey():
 					return
 				
 
-def playerHasHitBadFood(playerRect, BadFood):
-	for b in BadFood:
-		if playerRect.colliderect(b['rect']):
-			return True
-	return False
-
 def drawText(text, font, surface, x, y):
 	textobj = font.render(text, 1, TEXTCOLOR)
 	textrect = textobj.get_rect()
 	textrect.topleft = (x, y)
 	surface.blit(textobj, textrect)
 
+
+def playerHasHitBadFood(playerRect, BadFood):
+	global LIVES
+	for b in BadFood:
+		if isinstance(b, GameElement):
+			if playerRect.colliderect(b.rect):
+				LIVES -= 1
+				BadFood.remove(b)
+				if LIVES > 0:
+					return False
+				break
+	return True
+
 		# score with match color good food with player color
 def playerHasHitGoodFood(playerRect, GoodFood, currentColor):
+	global LIVES
 	for food in GoodFood:
-		if playerRect.colliderect(food["rect"]) and not food.get("touched", False):
-			if food["type"] == currentColor:
-				# show that the food has been touched
-				food["touched"] = True
-				GoodFood.remove(food)
-				return "match"
-			else:
-				food["touched"] = True
-				return "wrong"
+		if isinstance(food, GameElement):
+			if playerRect.colliderect(food.rect) and not food.isTouched():
+				food.touch()
+				if food.color == currentColor:
+					return "match"
+				else:
+					GoodFood.remove(food)
+				#add sound
+					return "wrong"
 	return None
+
+def GameOver(score, topScore):
+	if score > topScore:
+		topScore = score
+
+	pygame.mixer.music.stop()
+	gameOverSound.play()
+
+	#draw game over screen
+	drawText('GAME OVER', font, windowSurface, (WINDOWWIDTH / 3), (WINDOWHEIGHT / 3))
+	drawText('Press enter to play again.', font, windowSurface, (WINDOWWIDTH / 3) - 80, (WINDOWHEIGHT / 3) + 50)
+	pygame.display.update()
+	
+	#wait player to press enter
+	waitForPlayerToPressKey()
+	#stop sound
+	gameOverSound.stop()
+
+	return topScore
 
 # Set up pygame, the window, and the mouse cursor.
 pygame.init()
@@ -114,43 +163,63 @@ playerImageYellow = pygame.transform.scale(playerImageYellow, (70, 70))
 
 playerRect = playerImageGreen.get_rect()
 
-# set up food 
-foodGreen = pygame.image.load("grasshoppergreen.png")
-foodRed = pygame.image.load("grasshopperred.png")
-foodYellow = pygame.image.load("grasshopperyellow.png")
-foodBlue = pygame.image.load("grasshopperblue.png")
+#Import Element 
+GoodFoodImages = {
+	PLAYER_COLOR_GREEN: pygame.image.load("grasshoppergreen.png"),
+	PLAYER_COLOR_RED: pygame.image.load("grasshopperred.png"),
+	PLAYER_COLOR_YELLOW: pygame.image.load("grasshopperyellow.png"),
+	PLAYER_COLOR_BLUE: pygame.image.load("grasshopperblue.png")
+}
 
-#set up toxic food
-badGreen = pygame.image.load("cheesegreen.png")
-badRed = pygame.image.load("cheesered.png")
-badYellow = pygame.image.load("cheeseyellow.png")
-badBlue = pygame.image.load("cheeseblue.png")
+CheeseImages = {
+	PLAYER_COLOR_GREEN: pygame.image.load("cheesegreen.png"),
+	PLAYER_COLOR_RED: pygame.image.load("cheesered.png"),
+	PLAYER_COLOR_YELLOW: pygame.image.load("cheeseyellow.png"),
+	PLAYER_COLOR_BLUE: pygame.image.load("cheeseblue.png")
+}
+ChocolateImages = {
+	PLAYER_COLOR_GREEN: pygame.image.load("chocoGreen.png"),
+	PLAYER_COLOR_RED : pygame.image.load("chocoRed.png"),
+	PLAYER_COLOR_YELLOW: pygame.image.load("chocoYellow.png"),
+	PLAYER_COLOR_BLUE: pygame.image.load("chocoBlue.png")
+}
 
-ChocoGreen = pygame.image.load("chocoGreen.png")
-ChocoRed = pygame.image.load("chocoRed.png")
-ChocoYellow = pygame.image.load("chocoYellow.png")
-ChocoBlue = pygame.image.load("chocoGreen.png")
-# predators
-#aligator
-AliGreen = pygame.image.load("aligreen.png")
-AliRed = pygame.image.load("alired.png")
-AliYellow = pygame.image.load("aliyellow.png")
-AliBlue = pygame.image.load("aliblue.png")
-#eagle
-EagleGreen = pygame.image.load("eaglegreen.png")
-EagleRed = pygame.image.load("eaglered.png")
-EagleYellow = pygame.image.load("eagleyellow.png")
-EagleBlue = pygame.image.load("eagleblue.png")
-#owl
-OwlGreen = pygame.image.load("owlgreen.png")
-OwlRed = pygame.image.load("owlred.png")
-OwlYellow = pygame.image.load("owlyellow.png")
-OwlBljue = pygame.image.load("owlblue.png")
-#snake
-SnakeGreen = pygame.image.load("snakegreen.png")
-SnakeRed = pygame.image.load("snakered.png")
-SnakeYellow = pygame.image.load("snakeyellow.png")
-SnakeBlue = pygame.image.load("snakeblue.png")
+AlligatorImages = {
+	PLAYER_COLOR_GREEN: pygame.image.load("aligreen.png"),
+	PLAYER_COLOR_RED: pygame.image.load("alired.png"),
+	PLAYER_COLOR_YELLOW: pygame.image.load("aliyellow.png"),
+	PLAYER_COLOR_BLUE: pygame.image.load("aliblue.png")
+}
+EagleImages = {
+	PLAYER_COLOR_GREEN: pygame.image.load("eaglegreen.png"),
+	PLAYER_COLOR_RED: pygame.image.load("eaglered.png"),
+	PLAYER_COLOR_YELLOW: pygame.image.load("eagleyellow.png"),
+	PLAYER_COLOR_BLUE: pygame.image.load("eagleblue.png")
+}
+OwlImages = {
+	PLAYER_COLOR_GREEN: pygame.image.load("owlgreen.png"),
+	PLAYER_COLOR_RED: pygame.image.load("owlred.png"),
+	PLAYER_COLOR_YELLOW: pygame.image.load("owlyellow.png"),
+	PLAYER_COLOR_BLUE: pygame.image.load("owlblue.png")
+}
+SnakeImages = {
+	PLAYER_COLOR_GREEN: pygame.image.load("snakegreen.png"),
+	PLAYER_COLOR_RED: pygame.image.load("snakered.png"),
+	PLAYER_COLOR_YELLOW: pygame.image.load("snakeyellow.png"),
+	PLAYER_COLOR_BLUE: pygame.image.load("snakeblue.png")
+}
+
+BadFoodItems = {
+    "cheese": CheeseImages,
+    "chocolate": ChocolateImages,
+    "alligator": AlligatorImages,
+    "owl": OwlImages,
+    "snake": SnakeImages,
+    "eagle": EagleImages
+}
+
+#upload font type
+font = pygame.font.Font("Tropiland.ttf", 48)
 
 #set up background
 backgroundImage = pygame.image.load('background.png')
@@ -162,8 +231,10 @@ backgroundImage = pygame.transform.scale(backgroundImage, windowSurface.get_size
 windowSurface.fill(BACKGROUNDCOLOR)
 #insert our background to the screen
 windowSurface.blit(backgroundImage, (0,0))
+#text element for the game
 drawText('Jungle Chameleon', font, windowSurface, (WINDOWWIDTH / 3), (WINDOWHEIGHT / 3))
 drawText('Press enter to start.', font, windowSurface, (WINDOWWIDTH / 3) - 30, (WINDOWHEIGHT / 3) + 50)
+drawText(f'Lives: {LIVES}', font, windowSurface, WINDOWWIDTH - 150, 10)
 pygame.display.update()
 waitForPlayerToPressKey()
 
@@ -176,29 +247,12 @@ while True:
 	# Set up the start of the game.
 	GoodFood = []
 	BadFood = []
-	#create a dictionary
-	#grgreen as grasshopper green, grred as grasshopper red...
-	GoodFoodImages = {
-		PLAYER_COLOR_GREEN: foodGreen,
-		PLAYER_COLOR_RED: foodRed,
-		PLAYER_COLOR_YELLOW: foodYellow,
-		PLAYER_COLOR_BLUE: foodBlue
-	}
-	#chgreen as cheese green, chred as cheese red... tlgreen as chocolate green and so and so..
-	BadFoodImages = {
-		"chgreen": badGreen,
-		"chred": badRed,
-		"chyellow": badYellow,
-		"chblue": badBlue,
-		"chocgreen": ChocoGreen,
-		"chocred" : ChocoRed, 
-		"chocyellow": ChocoYellow,
-		"chocblue": ChocoBlue
-	}
+	LIVES = 3
 	score = 0
 	playerRect.topleft = (WINDOWWIDTH / 2, WINDOWHEIGHT -80)
 	moveLeft = moveRight = False
 	reverseCheat = slowCheat = False
+	PredatorAddCounter = 0
 	GoodFoodAddCounter = 0
 	BadFoodAddCounter = 0
 	pygame.mixer.music.play(-1, 0.0)
@@ -223,9 +277,9 @@ while True:
 					moveLeft = False
 					moveRight = True
 
-		#importer keys 
+		#import keys 
 			keys = pygame.key.get_pressed()
-				#variables pour les codes couleur des touches
+				#keys linked to color
 			if keys[pygame.K_1]:
 				currentColor = PLAYER_COLOR_GREEN
 			if keys[pygame.K_2]:
@@ -258,35 +312,50 @@ while True:
 		if GoodFoodAddCounter == ADDNEWGOODFOODRATE:
 			GoodFoodAddCounter = 0
 			GoodFoodSize = random.randint(GOODFOODMINSIZE, GOODFOODMAXSIZE)
-			#take key of the dictionary
-			GoodFoodTypes = list(GoodFoodImages.keys())
-	
-			# chose a random type
-			chosenType1 = random.choice(GoodFoodTypes)
-			newGoodFood = {'rect': pygame.Rect(random.randint(0, WINDOWWIDTH - GoodFoodSize), 0 - GoodFoodSize, GoodFoodSize, GoodFoodSize),
-					'speed': random.randint(GOODFOODMINSPEED, GOODFOODMAXSPEED),
-					'surface': pygame.transform.scale(GoodFoodImages[chosenType1], (GoodFoodSize, GoodFoodSize)),
-					'type': chosenType1}
+		
+			# call class
+			randomColor = random.choice(list(GoodFoodImages.keys()))
+			newGoodFood = GameElement(WINDOWWIDTH, WINDOWHEIGHT, randomColor, random.randint(0, WINDOWWIDTH - GoodFoodSize), 0 - GoodFoodSize, GoodFoodSize, random.randint(GOODFOODMINSPEED, GOODFOODMAXSPEED), GoodFoodImages[randomColor])
+
+
 			GoodFood.append(newGoodFood)
 
-		# --------- Adding bad food --------- 
-			if not reverseCheat and not slowCheat:
-				BadFoodAddCounter += 1
+		# --------- Adding baddies --------- 
+		if not reverseCheat and not slowCheat:
+			BadFoodAddCounter += 1
 
-			if BadFoodAddCounter == ADDNEWBADFOODRATE:
-				BadFoodAddCounter = 0
-				BadFoodSize = random.randint(BADFOODMINSIZE, BADFOODMAXSIZE)
-			#take key of the dictionary
-				badFoodTypes = list(BadFoodImages.keys())
-	
-			# chose a random type
-				chosenType2 = random.choice(badFoodTypes)
-				newBadFood = {'rect': pygame.Rect(random.randint(0, WINDOWWIDTH - BadFoodSize), 0 - BadFoodSize, BadFoodSize, BadFoodSize),
-						'speed': random.randint(BADFOODMINSPEED, BADFOODMAXSPEED),
-						'surface': pygame.transform.scale(BadFoodImages[chosenType2], (BadFoodSize, BadFoodSize)),
-						'type': chosenType2}
-				BadFood.append(newBadFood)
+		if BadFoodAddCounter == ADDNEWBADFOODRATE:
+			BadFoodAddCounter = 0
+			BadFoodSize = random.randint(BADFOODMINSIZE, BADFOODMAXSIZE)
+			
+			#call class
 
+			# Will we pick a cheese or a chocolate?
+			#newBadFoodIsCheese = random.randint(0, 1) == 0
+
+			#if newBadFoodIsCheese:
+			#	randomColor = random.choice(list(CheeseImages.keys()))		# Replace by list of cheese
+			#	newBadFoodImage = CheeseImages[randomColor]				# Replace by cheese
+			#else:
+			#	randomColor = random.choice(list(ChocolateImages.keys()))		# Replace by list of chocolate
+			#	newBadFoodImage = ChocolateImages[randomColor]				# Replace by chocolate
+
+			#newBadFood = GameElement(WINDOWWIDTH, WINDOWHEIGHT, randomColor, random.randint(0, WINDOWWIDTH - BadFoodSize), 0 - BadFoodSize, BadFoodSize, random.randint(BADFOODMINSPEED, BADFOODMAXSPEED), newBadFoodImage)
+
+			#BadFood.append(newBadFood)
+			# Randomly pick a type (cheese, chocolate, or animal)
+			randomType = random.choice(list(BadFoodItems.keys()))
+
+			# Pick a random color or variant for the selected type
+			randomColor = random.choice(list(BadFoodItems[randomType].keys()))
+
+			# Get the image corresponding to the type and color
+			newBadFoodImage = BadFoodItems[randomType][randomColor]
+
+			# Create the new bad food (or animal) GameElement
+			newBadFood = GameElement(WINDOWWIDTH, WINDOWHEIGHT, randomType, random.randint(0, WINDOWWIDTH - BadFoodSize), 0 - BadFoodSize, BadFoodSize, random.randint(BADFOODMINSPEED, BADFOODMAXSPEED), newBadFoodImage)
+			
+			BadFood.append(newBadFood)
 		# --------- Movements ---------
 
 		# Move the player around.
@@ -300,25 +369,25 @@ while True:
 		# Move the baddies down.
 		for b in BadFood:
 			if not reverseCheat and not slowCheat:
-				b['rect'].move_ip(0, b['speed']*speedMultiplier)
+				b.rect.move_ip(0, b.speed*speedMultiplier)
 			elif reverseCheat:
-				b['rect'].move_ip(0, -5)
+				b.rect.move_ip(0, -5)
 			elif slowCheat:
-				b['rect'].move_ip(0, 1)
+				b.rect.move_ip(0, 1)
 		for b in GoodFood:
 			if not reverseCheat and not slowCheat:
-				b['rect'].move_ip(0, b['speed']*speedMultiplier)
+				b.rect.move_ip(0, b.speed*speedMultiplier)
 			elif reverseCheat:
-				b['rect'].move_ip(0, -5)
+				b.rect.move_ip(0, -5)
 			elif slowCheat:
-				b['rect'].move_ip(0, 1)
+				b.rect.move_ip(0, 1)
 
-		# Delete baddies that have fallen past the bottom.
+		# Delete  element that have fallen past the bottom.
 		for b in BadFood[:]:
-			if b['rect'].top > WINDOWHEIGHT:
+			if b.rect.top > WINDOWHEIGHT:
 				BadFood.remove(b)
 		for b in GoodFood [:]:
-			if b["rect"].top > WINDOWHEIGHT:
+			if b.rect.top > WINDOWHEIGHT:
 				GoodFood.remove(b)
 
 		# --------- Display everything on the window. ---------
@@ -338,42 +407,39 @@ while True:
 			windowSurface.blit(playerImageBlue, playerRect)
 
 
-		# Draw the score and top score.
+		# Draw the score, top score and lives
 		drawText('Score: %s' % (score), font, windowSurface, 10, 0)
 		drawText('Top Score: %s' % (topScore), font, windowSurface, 10, 40)
+		drawText("Lives: %s" % (LIVES), font, windowSurface, WINDOWWIDTH - 150, 10)
 
-		# Draw each baddie.
+		# Draw each element.
 		for b in BadFood:
-			windowSurface.blit(b["surface"], b["rect"])
+			windowSurface.blit(b.surface, b.rect)
 		for b in GoodFood:
-			windowSurface.blit(b["surface"], b["rect"])
+			windowSurface.blit(b.surface, b.rect)
 
 		pygame.display.update()
 
 		# Check if any of the baddies have hit the player.
-		if playerHasHitBadFood(playerRect, BadFood):
-			if score > topScore:
-				topScore = score # set new top score
-			break
-
+		if not playerHasHitBadFood(playerRect, BadFood):
+			if LIVES <= 0:
+				topScore = GameOver(score, topScore)
+				break
 		# Check if any good food have hit the player
 		collision_result = playerHasHitGoodFood(playerRect, GoodFood, currentColor)
 		if collision_result == "wrong":
-			if score > topScore:
-				topScore = score
-			break
+			LIVES -= 1
+			if LIVES > 0:
+				pass
+			elif LIVES <= 0:
+				if score > topScore:
+					topscore = score
+				topScore = GameOver(score, topScore)
+				break
 		elif collision_result == "match":
 			score += 1
 
 		mainClock.tick(FPS)
 
-	# Stop the game and show the "Game Over" screen.
-	pygame.mixer.music.stop()
-	gameOverSound.play()
 
-	drawText('GAME OVER', font, windowSurface, (WINDOWWIDTH / 3), (WINDOWHEIGHT / 3))
-	drawText('Press enter to play again.', font, windowSurface, (WINDOWWIDTH / 3) - 80, (WINDOWHEIGHT / 3) + 50)
-	pygame.display.update()
-	waitForPlayerToPressKey()
-
-	gameOverSound.stop()
+	
