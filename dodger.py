@@ -11,7 +11,6 @@ from FPS import FPS
 WINDOWWIDTH = 600
 WINDOWHEIGHT = 600
 TEXTCOLOR = (255, 140, 0)
-#font = pygame.font.Font("JungleJunk.ttf", 48)  # Remplacez 'ma_police.ttf' par le chemin de votre fichier de police
 FPS = 60
 BACKGROUNDCOLOR = (210, 255, 200)
 #create a variable live, player has 3 lives at the beginning
@@ -80,12 +79,12 @@ def waitForPlayerToPressKey():
 					return
 				
 
-def drawText(text, font, surface, x, y):
+def drawText(text, font, surface, center_x, center_y):
 	textobj = font.render(text, 1, TEXTCOLOR)
 	textrect = textobj.get_rect()
-	textrect.topleft = (x, y)
+	textrect.center = (center_x, center_y)
 	surface.blit(textobj, textrect)
-
+#ef drawTextCentered(text, font, surface, center_x, center_y):
 
 def playerHasHitBadFood(playerRect, BadFood):
 	global LIVES
@@ -98,7 +97,7 @@ def playerHasHitBadFood(playerRect, BadFood):
 				if LIVES > 0:
 					return False
 				break
-	return True
+	return None
 
 		# score with match color good food with player color
 def playerHasHitGoodFood(playerRect, GoodFood, currentColor):
@@ -124,8 +123,8 @@ def GameOver(score, topScore):
 	gameOverSound.play()
 
 	#draw game over screen
-	drawText('GAME OVER', font, windowSurface, (WINDOWWIDTH / 3), (WINDOWHEIGHT / 3))
-	drawText('Press enter to play again.', font, windowSurface, (WINDOWWIDTH / 3) - 80, (WINDOWHEIGHT / 3) + 50)
+	drawText('GAME OVER', font, windowSurface, 300, 250)
+	drawText('Press enter to play again.', font, windowSurface, 300, 300)
 	pygame.display.update()
 	
 	#wait player to press enter
@@ -135,14 +134,17 @@ def GameOver(score, topScore):
 
 	return topScore
 
+def draw_lives():
+    for i in range(LIVES):
+        windowSurface.blit(flower, (WINDOWWIDTH - (LIVES * flower_width + (LIVES - 1) * 10) - 20 + i * (flower_width + 10), 20))
+
 # Set up pygame, the window, and the mouse cursor.
 pygame.init()
 mainClock = pygame.time.Clock()
 windowSurface = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
 pygame.display.set_caption('Dodger')
 pygame.mouse.set_visible(False)
-# Set up the fonts.
-font = pygame.font.SysFont(None, 48)
+
 
 # Set up sounds.
 pygame.mixer.music.load('jungle.wav')
@@ -162,6 +164,12 @@ FoodSound.set_volume(0.1)
 
 
 # Set up images.
+#flower
+flower = pygame.image.load("pinkflower.png")
+flower = pygame.transform.scale(flower, (40, 40))
+flower_width = flower.get_width()
+flower_height = flower.get_height()
+
 # all our color cameleon
 playerImageBlue = pygame.image.load('camblue.png')
 playerImageGreen = pygame.image.load('camgreen.png')
@@ -243,6 +251,7 @@ BadFoodSound = {
 }
 #upload font type
 font = pygame.font.Font("Tropiland.ttf", 48)
+small_font = pygame.font.Font("Tropiland.ttf", 35)
 
 #set up background
 backgroundImage = pygame.image.load('background.png')
@@ -255,9 +264,8 @@ windowSurface.fill(BACKGROUNDCOLOR)
 #insert our background to the screen
 windowSurface.blit(backgroundImage, (0,0))
 #text element for the game
-drawText('Jungle Chameleon', font, windowSurface, (WINDOWWIDTH / 3), (WINDOWHEIGHT / 3))
-drawText('Press enter to start.', font, windowSurface, (WINDOWWIDTH / 3) - 30, (WINDOWHEIGHT / 3) + 50)
-drawText(f'Lives: {LIVES}', font, windowSurface, WINDOWWIDTH - 150, 10)
+drawText('Jungle Chameleon', font, windowSurface, 300, 250)
+drawText('Press enter to start.', font, windowSurface, 300, 300)
 pygame.display.update()
 waitForPlayerToPressKey()
 
@@ -417,9 +425,9 @@ while True:
 
 
 		# Draw the score, top score and lives
-		drawText('Score: %s' % (score), font, windowSurface, 10, 0)
-		drawText('Top Score: %s' % (topScore), font, windowSurface, 10, 40)
-		drawText("Lives: %s" % (LIVES), font, windowSurface, WINDOWWIDTH - 150, 10)
+		drawText('Score: %s' % (score), small_font, windowSurface, 85, 40)
+		drawText('Top Score: %s' % (topScore), small_font, windowSurface, 110, 80)
+		draw_lives()
 
 		# Draw each element.
 		for b in BadFood:
