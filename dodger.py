@@ -27,7 +27,7 @@ BADFOODMINSIZE = 40
 BADFOODMAXSIZE = 60
 BADFOODMINSPEED = 1
 BADFOODMAXSPEED = 5
-ADDNEWBADFOODRATE = 40
+ADDNEWBADFOODRATE = 70
 
 PLAYERMOVERATE = 5
 
@@ -58,9 +58,9 @@ class GameElement:
 	def isTouched(self):
 		return self.touched
 
-	# def playTouchingSound(self):
-		# if self.touchingSound:
-		# 	self.touchingSound.play()
+	def playTouchingSound(self):
+		if self.touchingSound:
+			self.touchingSound.play()
 
 #create my function
 
@@ -94,6 +94,7 @@ def playerHasHitBadFood(playerRect, BadFood):
 			if playerRect.colliderect(b.rect):
 				LIVES -= 1
 				BadFood.remove(b)
+				b.playTouchingSound()
 				if LIVES > 0:
 					return False
 				break
@@ -107,10 +108,11 @@ def playerHasHitGoodFood(playerRect, GoodFood, currentColor):
 			if playerRect.colliderect(food.rect) and not food.isTouched():
 				food.touch()
 				if food.color == currentColor:
+					GoodFood.remove(food)
 					return "match"
 				else:
 					GoodFood.remove(food)
-				#add sound
+					food.playTouchingSound()
 					return "wrong"
 	return None
 
@@ -143,10 +145,21 @@ pygame.mouse.set_visible(False)
 font = pygame.font.SysFont(None, 48)
 
 # Set up sounds.
+pygame.mixer.music.load('jungle.wav')
 gameOverSound = pygame.mixer.Sound('gameover.wav')
+FoodSound = pygame.mixer.Sound("alluminium.wav")
+AlligatorSound = pygame.mixer.Sound("alligator growls.wav")
+EagleSound = pygame.mixer.Sound("eagle sound.wav")
+OwlSound = pygame.mixer.Sound("hiboux.wav")
+SnakeSound = pygame.mixer.Sound("snake.wav")
+
+
 #diminue volume
 gameOverSound.set_volume(0.1)
-pygame.mixer.music.load('jungle.wav')
+FoodSound.set_volume(0.1)
+
+
+
 
 # Set up images.
 # all our color cameleon
@@ -163,50 +176,52 @@ playerImageYellow = pygame.transform.scale(playerImageYellow, (70, 70))
 
 playerRect = playerImageGreen.get_rect()
 
+
+
 #Import Element 
 GoodFoodImages = {
 	PLAYER_COLOR_GREEN: pygame.image.load("grasshoppergreen.png"),
 	PLAYER_COLOR_RED: pygame.image.load("grasshopperred.png"),
 	PLAYER_COLOR_YELLOW: pygame.image.load("grasshopperyellow.png"),
-	PLAYER_COLOR_BLUE: pygame.image.load("grasshopperblue.png")
+	PLAYER_COLOR_BLUE: pygame.image.load("grasshopperblue.png"),
 }
 
 CheeseImages = {
 	PLAYER_COLOR_GREEN: pygame.image.load("cheesegreen.png"),
 	PLAYER_COLOR_RED: pygame.image.load("cheesered.png"),
 	PLAYER_COLOR_YELLOW: pygame.image.load("cheeseyellow.png"),
-	PLAYER_COLOR_BLUE: pygame.image.load("cheeseblue.png")
+	PLAYER_COLOR_BLUE: pygame.image.load("cheeseblue.png"),
 }
 ChocolateImages = {
 	PLAYER_COLOR_GREEN: pygame.image.load("chocoGreen.png"),
 	PLAYER_COLOR_RED : pygame.image.load("chocoRed.png"),
 	PLAYER_COLOR_YELLOW: pygame.image.load("chocoYellow.png"),
-	PLAYER_COLOR_BLUE: pygame.image.load("chocoBlue.png")
+	PLAYER_COLOR_BLUE: pygame.image.load("chocoBlue.png"),
 }
 
 AlligatorImages = {
 	PLAYER_COLOR_GREEN: pygame.image.load("aligreen.png"),
 	PLAYER_COLOR_RED: pygame.image.load("alired.png"),
 	PLAYER_COLOR_YELLOW: pygame.image.load("aliyellow.png"),
-	PLAYER_COLOR_BLUE: pygame.image.load("aliblue.png")
+	PLAYER_COLOR_BLUE: pygame.image.load("aliblue.png"),
 }
 EagleImages = {
 	PLAYER_COLOR_GREEN: pygame.image.load("eaglegreen.png"),
 	PLAYER_COLOR_RED: pygame.image.load("eaglered.png"),
 	PLAYER_COLOR_YELLOW: pygame.image.load("eagleyellow.png"),
-	PLAYER_COLOR_BLUE: pygame.image.load("eagleblue.png")
+	PLAYER_COLOR_BLUE: pygame.image.load("eagleblue.png"),
 }
 OwlImages = {
 	PLAYER_COLOR_GREEN: pygame.image.load("owlgreen.png"),
 	PLAYER_COLOR_RED: pygame.image.load("owlred.png"),
 	PLAYER_COLOR_YELLOW: pygame.image.load("owlyellow.png"),
-	PLAYER_COLOR_BLUE: pygame.image.load("owlblue.png")
+	PLAYER_COLOR_BLUE: pygame.image.load("owlblue.png"),
 }
 SnakeImages = {
 	PLAYER_COLOR_GREEN: pygame.image.load("snakegreen.png"),
 	PLAYER_COLOR_RED: pygame.image.load("snakered.png"),
 	PLAYER_COLOR_YELLOW: pygame.image.load("snakeyellow.png"),
-	PLAYER_COLOR_BLUE: pygame.image.load("snakeblue.png")
+	PLAYER_COLOR_BLUE: pygame.image.load("snakeblue.png"),
 }
 
 BadFoodItems = {
@@ -218,6 +233,14 @@ BadFoodItems = {
     "eagle": EagleImages
 }
 
+BadFoodSound = {
+	"cheese": FoodSound,
+	"chocolate": FoodSound,
+	"alligator": AlligatorSound,
+	"owl": OwlSound,
+	"snake": SnakeSound,
+	"eagle": EagleSound
+}
 #upload font type
 font = pygame.font.Font("Tropiland.ttf", 48)
 
@@ -246,6 +269,7 @@ while True:
 	
 	# Set up the start of the game.
 	GoodFood = []
+	#BadFood means chocolate and cheese but also predators
 	BadFood = []
 	LIVES = 3
 	score = 0
@@ -315,7 +339,7 @@ while True:
 		
 			# call class
 			randomColor = random.choice(list(GoodFoodImages.keys()))
-			newGoodFood = GameElement(WINDOWWIDTH, WINDOWHEIGHT, randomColor, random.randint(0, WINDOWWIDTH - GoodFoodSize), 0 - GoodFoodSize, GoodFoodSize, random.randint(GOODFOODMINSPEED, GOODFOODMAXSPEED), GoodFoodImages[randomColor])
+			newGoodFood = GameElement(WINDOWWIDTH, WINDOWHEIGHT, randomColor, random.randint(0, WINDOWWIDTH - GoodFoodSize), 0 - GoodFoodSize, GoodFoodSize, random.randint(GOODFOODMINSPEED, GOODFOODMAXSPEED), GoodFoodImages[randomColor], FoodSound)
 
 
 			GoodFood.append(newGoodFood)
@@ -329,31 +353,15 @@ while True:
 			BadFoodSize = random.randint(BADFOODMINSIZE, BADFOODMAXSIZE)
 			
 			#call class
-
-			# Will we pick a cheese or a chocolate?
-			#newBadFoodIsCheese = random.randint(0, 1) == 0
-
-			#if newBadFoodIsCheese:
-			#	randomColor = random.choice(list(CheeseImages.keys()))		# Replace by list of cheese
-			#	newBadFoodImage = CheeseImages[randomColor]				# Replace by cheese
-			#else:
-			#	randomColor = random.choice(list(ChocolateImages.keys()))		# Replace by list of chocolate
-			#	newBadFoodImage = ChocolateImages[randomColor]				# Replace by chocolate
-
-			#newBadFood = GameElement(WINDOWWIDTH, WINDOWHEIGHT, randomColor, random.randint(0, WINDOWWIDTH - BadFoodSize), 0 - BadFoodSize, BadFoodSize, random.randint(BADFOODMINSPEED, BADFOODMAXSPEED), newBadFoodImage)
-
-			#BadFood.append(newBadFood)
 			# Randomly pick a type (cheese, chocolate, or animal)
 			randomType = random.choice(list(BadFoodItems.keys()))
-
 			# Pick a random color or variant for the selected type
 			randomColor = random.choice(list(BadFoodItems[randomType].keys()))
-
+			sound = BadFoodSound[randomType]
 			# Get the image corresponding to the type and color
 			newBadFoodImage = BadFoodItems[randomType][randomColor]
-
 			# Create the new bad food (or animal) GameElement
-			newBadFood = GameElement(WINDOWWIDTH, WINDOWHEIGHT, randomType, random.randint(0, WINDOWWIDTH - BadFoodSize), 0 - BadFoodSize, BadFoodSize, random.randint(BADFOODMINSPEED, BADFOODMAXSPEED), newBadFoodImage)
+			newBadFood = GameElement(WINDOWWIDTH, WINDOWHEIGHT, randomType, random.randint(0, WINDOWWIDTH - BadFoodSize), 0 - BadFoodSize, BadFoodSize, random.randint(BADFOODMINSPEED, BADFOODMAXSPEED), newBadFoodImage, touchingSound=sound)
 			
 			BadFood.append(newBadFood)
 		# --------- Movements ---------
