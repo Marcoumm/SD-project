@@ -92,6 +92,8 @@ def playerHasHitBadFood(playerRect, BadFood):
 				elif b.color == "spotmalus":
 					spotVisible = True
 					spotTime = pygame.time.get_ticks()
+				else: 
+					LIVES -= 1
 				BadFood.remove(b)
 				b.playTouchingSound()
 				if LIVES > 0:
