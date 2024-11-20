@@ -3,10 +3,6 @@ from pygame.locals import *
 
 from FPS import FPS
 
-# https://www.w3schools.com/python/python_classes.asp
-
-
-
 #program basic setting
 WINDOWWIDTH = 600
 WINDOWHEIGHT = 600
@@ -24,11 +20,12 @@ ADDNEWGOODFOODRATE = 40
 
 BADFOODMINSIZE = 40
 BADFOODMAXSIZE = 60
-BADFOODMINSPEED = 1
+BADFOODMINSPEED = 2
 BADFOODMAXSPEED = 5
-ADDNEWBADFOODRATE = 70
+ADDNEWBADFOODRATE = 60
 
 PLAYERMOVERATE = 5
+SPOT_DURATION = 5000
 
 #color
 PLAYER_COLOR_GREEN = 1
@@ -36,10 +33,6 @@ PLAYER_COLOR_RED = 2
 PLAYER_COLOR_YELLOW = 3
 PLAYER_COLOR_BLUE = 4
 
-#type of food: good, toxic and predator
-GOODFOOD = "good"
-BADFOOD = "bad"
-PREDATOR = "predator"
 
 class GameElement:
     
@@ -84,14 +77,21 @@ def drawText(text, font, surface, center_x, center_y):
 	textrect = textobj.get_rect()
 	textrect.center = (center_x, center_y)
 	surface.blit(textobj, textrect)
-#ef drawTextCentered(text, font, surface, center_x, center_y):
+
 
 def playerHasHitBadFood(playerRect, BadFood):
-	global LIVES
-	for b in BadFood:
+	global LIVES, doublePointsActive, doublePointsTimer, spotVisible, spotTime
+	for b in BadFood[:]:
 		if isinstance(b, GameElement):
 			if playerRect.colliderect(b.rect):
-				LIVES -= 1
+				if b.color == "bonus":  # Check if it's a bonus item
+					LIVES += 1 #Restore a life
+				elif b.color == "doublebonus":
+					doublePointsActive = True
+					doublePointsTimer = pygame.time.get_ticks()
+				elif b.color == "spotmalus":
+					spotVisible = True
+					spotTime = pygame.time.get_ticks()
 				BadFood.remove(b)
 				b.playTouchingSound()
 				if LIVES > 0:
@@ -115,6 +115,36 @@ def playerHasHitGoodFood(playerRect, GoodFood, currentColor):
 					return "wrong"
 	return None
 
+#function malu spot
+def applySpotMalusEffect(WindowSurface):
+    global spotVisible, spotTime, Spot
+    
+    if spotVisible and Spot:
+        # Calculate how long the effect has been active
+        currentTime = pygame.time.get_ticks()
+        elapsedTime = currentTime - spotTime
+        
+        # Check if the effect should still be visible (e.g., for 3 seconds)
+        if elapsedTime < SPOT_DURATION:
+            # Draw the spotmalus PNG image at the center of the screen (or wherever you want)
+            spot_rect = Spot.get_rect(center=(WindowSurface.get_width() // 2, windowSurface.get_height() // 2))  # Example: center the spot
+            windowSurface.blit(Spot, spot_rect)
+        else:
+            # Once the time has passed, stop showing the effect
+            spotVisible = False
+
+
+#function for bonus
+def update():
+    global doublePointsActive, doublePointsTimer
+    if doublePointsActive:
+        # Check that 5 seconds passed
+        if pygame.time.get_ticks() - doublePointsTimer >= 8000:
+            doublePointsActive = False
+
+
+
+#gameover function
 def GameOver(score, topScore):
 	if score > topScore:
 		topScore = score
@@ -155,13 +185,9 @@ EagleSound = pygame.mixer.Sound("eagle sound.wav")
 OwlSound = pygame.mixer.Sound("hiboux.wav")
 SnakeSound = pygame.mixer.Sound("snake.wav")
 
-
 #diminue volume
 gameOverSound.set_volume(0.1)
 FoodSound.set_volume(0.1)
-
-
-
 
 # Set up images.
 #flower
@@ -184,7 +210,12 @@ playerImageYellow = pygame.transform.scale(playerImageYellow, (70, 70))
 
 playerRect = playerImageGreen.get_rect()
 
-
+Bonus = pygame.image.load("heart.png")
+DoublePointsBonus = pygame.image.load("plus.png")
+Malus = pygame.image.load("mushroom.png")
+SpotMalus = pygame.image.load("tache.png")
+Spot = pygame.image.load("tache.png").convert_alpha()
+Spot = pygame.transform.scale(Spot, (600, 600))
 
 #Import Element 
 GoodFoodImages = {
@@ -192,19 +223,6 @@ GoodFoodImages = {
 	PLAYER_COLOR_RED: pygame.image.load("grasshopperred.png"),
 	PLAYER_COLOR_YELLOW: pygame.image.load("grasshopperyellow.png"),
 	PLAYER_COLOR_BLUE: pygame.image.load("grasshopperblue.png"),
-}
-
-CheeseImages = {
-	PLAYER_COLOR_GREEN: pygame.image.load("cheesegreen.png"),
-	PLAYER_COLOR_RED: pygame.image.load("cheesered.png"),
-	PLAYER_COLOR_YELLOW: pygame.image.load("cheeseyellow.png"),
-	PLAYER_COLOR_BLUE: pygame.image.load("cheeseblue.png"),
-}
-ChocolateImages = {
-	PLAYER_COLOR_GREEN: pygame.image.load("chocoGreen.png"),
-	PLAYER_COLOR_RED : pygame.image.load("chocoRed.png"),
-	PLAYER_COLOR_YELLOW: pygame.image.load("chocoYellow.png"),
-	PLAYER_COLOR_BLUE: pygame.image.load("chocoBlue.png"),
 }
 
 AlligatorImages = {
@@ -233,21 +251,25 @@ SnakeImages = {
 }
 
 BadFoodItems = {
-    "cheese": CheeseImages,
-    "chocolate": ChocolateImages,
     "alligator": AlligatorImages,
     "owl": OwlImages,
     "snake": SnakeImages,
-    "eagle": EagleImages
+    "eagle": EagleImages,
+	"bonus": Bonus,
+	"doublebonus": DoublePointsBonus,
+	"malus": Malus,
+	"spotmalus": SpotMalus
 }
 
 BadFoodSound = {
-	"cheese": FoodSound,
-	"chocolate": FoodSound,
 	"alligator": AlligatorSound,
 	"owl": OwlSound,
 	"snake": SnakeSound,
-	"eagle": EagleSound
+	"eagle": EagleSound,
+	"bonus": FoodSound,
+	"doublebonus": FoodSound,
+	"malus": FoodSound,
+	"spotmalus": FoodSound
 }
 #upload font type
 font = pygame.font.Font("Tropiland.ttf", 48)
@@ -271,13 +293,21 @@ waitForPlayerToPressKey()
 
 # Default game values
 currentColor = PLAYER_COLOR_GREEN
+
 topScore = 0
+
 speedMultiplier = 1.0
+# bonus / malus effect
+doublePointsActive = False
+doublePointsTimer = 0
+spotVisible = False
+
+
 while True:
 	
 	# Set up the start of the game.
 	GoodFood = []
-	#BadFood means chocolate and cheese but also predators
+	#BadFood means predators / bonus and malus
 	BadFood = []
 	LIVES = 3
 	score = 0
@@ -294,6 +324,9 @@ while True:
 		for event in pygame.event.get():
 			if event.type == QUIT:
 				terminate()
+			
+			if spotVisible:
+				windowSurface.blit(SpotMalus, (0, 0))
 
 			# --------- Controls ---------
 
@@ -308,7 +341,7 @@ while True:
 				if event.key == K_RIGHT or event.key == K_d:
 					moveLeft = False
 					moveRight = True
-
+			
 		#import keys 
 			keys = pygame.key.get_pressed()
 				#keys linked to color
@@ -361,14 +394,15 @@ while True:
 			BadFoodSize = random.randint(BADFOODMINSIZE, BADFOODMAXSIZE)
 			
 			#call class
-			# Randomly pick a type (cheese, chocolate, or animal)
 			randomType = random.choice(list(BadFoodItems.keys()))
-			# Pick a random color or variant for the selected type
-			randomColor = random.choice(list(BadFoodItems[randomType].keys()))
-			# play sound of the corresponding badfood's type
-			sound = BadFoodSound[randomType]
-			# Get the image corresponding to the type and color
-			newBadFoodImage = BadFoodItems[randomType][randomColor]
+			#malus and bonus haven't key color, separate them
+			if randomType in ["bonus", "malus", "doublebonus", "spotmalus"]:
+				newBadFoodImage = BadFoodItems[randomType]
+				sound = BadFoodSound[randomType]
+			else:
+				randomColor = random.choice(list(BadFoodItems[randomType].keys()))
+				sound = BadFoodSound[randomType]
+				newBadFoodImage = BadFoodItems[randomType][randomColor]
 			# Create the new bad food (or animal) GameElement
 			newBadFood = GameElement(WINDOWWIDTH, WINDOWHEIGHT, randomType, random.randint(0, WINDOWWIDTH - BadFoodSize), 0 - BadFoodSize, BadFoodSize, random.randint(BADFOODMINSPEED, BADFOODMAXSPEED), newBadFoodImage, touchingSound=sound)
 			
@@ -435,6 +469,9 @@ while True:
 		for b in GoodFood:
 			windowSurface.blit(b.surface, b.rect)
 
+		applySpotMalusEffect(windowSurface)
+		update()
+
 		pygame.display.update()
 
 		# Check if any of the baddies have hit the player.
@@ -442,6 +479,7 @@ while True:
 			if LIVES <= 0:
 				topScore = GameOver(score, topScore)
 				break
+		
 		# Check if any good food have hit the player
 		collision_result = playerHasHitGoodFood(playerRect, GoodFood, currentColor)
 		if collision_result == "wrong":
@@ -454,7 +492,12 @@ while True:
 				topScore = GameOver(score, topScore)
 				break
 		elif collision_result == "match":
-			score += 1
+			if doublePointsActive:
+				score += 2
+			else:
+				score += 1
+
+		
 
 		mainClock.tick(FPS)
 
