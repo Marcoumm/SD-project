@@ -22,7 +22,7 @@ BADFOODMINSIZE = 40
 BADFOODMAXSIZE = 60
 BADFOODMINSPEED = 2
 BADFOODMAXSPEED = 5
-ADDNEWBADFOODRATE = 60
+ADDNEWBADFOODRATE = 40
 
 PLAYERMOVERATE = 5
 SPOT_DURATION = 5000
@@ -68,7 +68,7 @@ def waitForPlayerToPressKey():
 			if event.type == KEYDOWN:
 				if event.key == K_ESCAPE: # Pressing ESC quits.
 					terminate()
-				if event.key == K_RETURN:  # Continue only if ENTER is pressed.
+				if event.key == K_SPACE:  # Continue only if barre espace is pressed.
 					return
 				
 
@@ -86,16 +86,20 @@ def playerHasHitBadFood(playerRect, BadFood):
 			if playerRect.colliderect(b.rect):
 				if b.color == "bonus":  # Check if it's a bonus item
 					LIVES += 1 #Restore a life
+					BonusSound.play()
 				elif b.color == "doublebonus":
 					doublePointsActive = True
 					doublePointsTimer = pygame.time.get_ticks()
+					BonusSound.play()
 				elif b.color == "spotmalus":
 					spotVisible = True
 					spotTime = pygame.time.get_ticks()
+					MalusSound.play()
 				else: 
 					LIVES -= 1
+					MalusSound.play()
 				BadFood.remove(b)
-				b.playTouchingSound()
+				
 				if LIVES > 0:
 					return False
 				break
@@ -110,10 +114,12 @@ def playerHasHitGoodFood(playerRect, GoodFood, currentColor):
 				food.touch()
 				if food.color == currentColor:
 					GoodFood.remove(food)
+					BonusSound.play()
 					return "match"
+				
 				else:
 					GoodFood.remove(food)
-					food.playTouchingSound()
+					MalusSound.play()
 					return "wrong"
 	return None
 
@@ -134,6 +140,8 @@ def applySpotMalusEffect(WindowSurface):
         else:
             # Once the time has passed, stop showing the effect
             spotVisible = False
+	
+	
 
 
 #function for bonus
@@ -156,10 +164,10 @@ def GameOver(score, topScore):
 
 	#draw game over screen
 	drawText('GAME OVER', font, windowSurface, 300, 250)
-	drawText('Press enter to play again.', font, windowSurface, 300, 300)
+	drawText('Press space to play again.', font, windowSurface, 300, 300)
 	pygame.display.update()
 	
-	#wait player to press enter
+	#wait player to press space
 	waitForPlayerToPressKey()
 	#stop sound
 	gameOverSound.stop()
@@ -174,14 +182,15 @@ def draw_lives():
 pygame.init()
 mainClock = pygame.time.Clock()
 windowSurface = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
-pygame.display.set_caption('Dodger')
+pygame.display.set_caption('Jungle')
 pygame.mouse.set_visible(False)
 
 
 # Set up sounds.
 pygame.mixer.music.load('jungle.wav')
 gameOverSound = pygame.mixer.Sound('gameover.wav')
-FoodSound = pygame.mixer.Sound("alluminium.wav")
+MalusSound = pygame.mixer.Sound("malus.wav")
+BonusSound = pygame.mixer.Sound("bonus.wav")
 AlligatorSound = pygame.mixer.Sound("alligator growls.wav")
 EagleSound = pygame.mixer.Sound("eagle sound.wav")
 OwlSound = pygame.mixer.Sound("hiboux.wav")
@@ -189,7 +198,7 @@ SnakeSound = pygame.mixer.Sound("snake.wav")
 
 #diminue volume
 gameOverSound.set_volume(0.1)
-FoodSound.set_volume(0.1)
+MalusSound.set_volume(0.8)
 
 # Set up images.
 #flower
@@ -268,10 +277,10 @@ BadFoodSound = {
 	"owl": OwlSound,
 	"snake": SnakeSound,
 	"eagle": EagleSound,
-	"bonus": FoodSound,
-	"doublebonus": FoodSound,
-	"malus": FoodSound,
-	"spotmalus": FoodSound
+	"bonus": BonusSound,
+	"doublebonus": BonusSound,
+	"malus": MalusSound,
+	"spotmalus": MalusSound
 }
 #upload font type
 font = pygame.font.Font("Tropiland.ttf", 48)
@@ -300,10 +309,6 @@ topScore = 0
 
 speedMultiplier = 1.0
 # bonus / malus effect
-doublePointsActive = False
-doublePointsTimer = 0
-spotVisible = False
-
 
 while True:
 	
@@ -313,6 +318,9 @@ while True:
 	BadFood = []
 	LIVES = 3
 	score = 0
+	doublePointsActive = False
+	doublePointsTimer = 0
+	spotVisible = False
 	playerRect.topleft = (WINDOWWIDTH / 2, WINDOWHEIGHT -80)
 	moveLeft = moveRight = False
 	reverseCheat = slowCheat = False
@@ -320,6 +328,8 @@ while True:
 	GoodFoodAddCounter = 0
 	BadFoodAddCounter = 0
 	pygame.mixer.music.play(-1, 0.0)
+
+	
 
 	while True: # The game loop runs while the game part is playing. 
 
@@ -382,7 +392,7 @@ while True:
 		
 			# call class
 			randomColor = random.choice(list(GoodFoodImages.keys()))
-			newGoodFood = GameElement(WINDOWWIDTH, WINDOWHEIGHT, randomColor, random.randint(0, WINDOWWIDTH - GoodFoodSize), 0 - GoodFoodSize, GoodFoodSize, random.randint(GOODFOODMINSPEED, GOODFOODMAXSPEED), GoodFoodImages[randomColor], FoodSound)
+			newGoodFood = GameElement(WINDOWWIDTH, WINDOWHEIGHT, randomColor, random.randint(0, WINDOWWIDTH - GoodFoodSize), 0 - GoodFoodSize, GoodFoodSize, random.randint(GOODFOODMINSPEED, GOODFOODMAXSPEED), GoodFoodImages[randomColor], BonusSound)
 
 
 			GoodFood.append(newGoodFood)
