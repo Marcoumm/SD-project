@@ -374,7 +374,7 @@ while True:
 			playerRect.move_ip(PLAYERMOVERATE, 0)
 
 		# increase speed game due to score
-		speedMultiplier = 1 + (score//10) * 0.4
+		speedMultiplier = 1 + (score//10) * 0.2
 		# Move the baddies down.
 		for b in BadFood:
 			if not reverseCheat and not slowCheat:
