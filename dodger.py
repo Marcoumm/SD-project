@@ -357,6 +357,7 @@ while True:
 			randomType = random.choice(list(BadFoodItems.keys()))
 			# Pick a random color or variant for the selected type
 			randomColor = random.choice(list(BadFoodItems[randomType].keys()))
+			# play sound of the corresponding badfood's type
 			sound = BadFoodSound[randomType]
 			# Get the image corresponding to the type and color
 			newBadFoodImage = BadFoodItems[randomType][randomColor]
