@@ -26,6 +26,8 @@ ADDNEWBADFOODRATE = 40
 
 PLAYERMOVERATE = 5
 SPOT_DURATION = 5000
+BUG_MOVE_DURATION = 3000
+BUG_MOVE_INTENSITY = 5
 
 #color
 PLAYER_COLOR_GREEN = 1
@@ -80,7 +82,7 @@ def drawText(text, font, surface, center_x, center_y):
 
 
 def playerHasHitBadFood(playerRect, BadFood):
-	global LIVES, doublePointsActive, doublePointsTimer, spotVisible, spotTime
+	global LIVES, doublePointsActive, doublePointsTimer, spotVisible, spotTime, bugMoveActive, bugMoveTimer
 	for b in BadFood[:]:
 		if isinstance(b, GameElement):
 			if playerRect.colliderect(b.rect):
@@ -94,6 +96,10 @@ def playerHasHitBadFood(playerRect, BadFood):
 				elif b.color == "spotmalus":
 					spotVisible = True
 					spotTime = pygame.time.get_ticks()
+					MalusSound.play()
+				elif b.color == "malus":
+					bugMoveActive = True
+					bugMoveTimer = pygame.time.get_ticks()
 					MalusSound.play()
 				else: 
 					LIVES -= 1
@@ -140,8 +146,13 @@ def applySpotMalusEffect(WindowSurface):
         else:
             # Once the time has passed, stop showing the effect
             spotVisible = False
-	
-	
+def applyBugMalusEffect(windowSurfacte):
+	global bugMoveActive, bugMoveTimer, Malus
+
+	if bugMoveActive :
+		currentTime = pygame.time.get_ticks()
+		if currentTime - bugMoveTimer >= BUG_MOVE_DURATION:
+			bugMoveActive
 
 
 #function for bonus
@@ -321,6 +332,8 @@ while True:
 	doublePointsActive = False
 	doublePointsTimer = 0
 	spotVisible = False
+	bugMoveActive = False
+	bugMoveTimer = 0
 	playerRect.topleft = (WINDOWWIDTH / 2, WINDOWHEIGHT -80)
 	moveLeft = moveRight = False
 	reverseCheat = slowCheat = False
@@ -427,6 +440,14 @@ while True:
 		if moveRight and playerRect.right < WINDOWWIDTH:
 			playerRect.move_ip(PLAYERMOVERATE, 0)
 
+		if bugMoveActive:
+			elapsedTime = pygame.time.get_ticks() - bugMoveTimer
+			if elapsedTime <BUG_MOVE_DURATION:
+				jitter_x = random.randint(-8, 8)
+				playerRect.move_ip(jitter_x, 0)
+			else:
+				bugMoveActive = False
+
 		# increase speed game due to score
 		speedMultiplier = 1 + (score//10) * 0.2
 		# Move the baddies down.
@@ -482,6 +503,7 @@ while True:
 			windowSurface.blit(b.surface, b.rect)
 
 		applySpotMalusEffect(windowSurface)
+		applyBugMalusEffect
 		update()
 
 		pygame.display.update()
