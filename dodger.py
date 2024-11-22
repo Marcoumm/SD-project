@@ -309,7 +309,7 @@ windowSurface.fill(BACKGROUNDCOLOR)
 windowSurface.blit(backgroundImage, (0,0))
 #text element for the game
 drawText('Jungle Chameleon', font, windowSurface, 300, 250)
-drawText('Press enter to start.', font, windowSurface, 300, 300)
+drawText('Press space to start.', font, windowSurface, 300, 300)
 pygame.display.update()
 waitForPlayerToPressKey()
 
