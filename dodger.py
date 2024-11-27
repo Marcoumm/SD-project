@@ -103,7 +103,6 @@ def playerHasHitBadFood(playerRect, BadFood):
 					MalusSound.play()
 				else: 
 					LIVES -= 1
-					MalusSound.play()
 				BadFood.remove(b)
 				
 				if LIVES > 0:
@@ -202,9 +201,9 @@ pygame.mixer.music.load('jungle.wav')
 gameOverSound = pygame.mixer.Sound('gameover.wav')
 MalusSound = pygame.mixer.Sound("malus.wav")
 BonusSound = pygame.mixer.Sound("bonus.wav")
-AlligatorSound = pygame.mixer.Sound("alligator growls.wav")
-EagleSound = pygame.mixer.Sound("eagle sound.wav")
-OwlSound = pygame.mixer.Sound("hiboux.wav")
+AlligatorSound = pygame.mixer.Sound("Alligator.wav")
+EagleSound = pygame.mixer.Sound("Eagle.wav")
+OwlSound = pygame.mixer.Sound("Owl.wav")
 SnakeSound = pygame.mixer.Sound("snake.wav")
 
 #diminue volume
@@ -512,6 +511,7 @@ while True:
 		if not playerHasHitBadFood(playerRect, BadFood):
 			if LIVES <= 0:
 				topScore = GameOver(score, topScore)
+				BadFoodSound.play()
 				break
 		
 		# Check if any good food have hit the player
