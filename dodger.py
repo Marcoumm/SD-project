@@ -210,7 +210,10 @@ SnakeSound = pygame.mixer.Sound("snake.wav")
 #diminue volume
 gameOverSound.set_volume(0.1)
 MalusSound.set_volume(0.8)
-
+AlligatorSound.set_volume(0.3)
+EagleSound.set_volume(0.3)
+OwlSound.set_volume(0.3)
+SnakeSound.set_volume(0.3)
 # Set up images.
 #flower
 flower = pygame.image.load("pinkflower.png")
