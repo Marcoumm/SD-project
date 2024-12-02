@@ -310,13 +310,14 @@ windowSurface.fill(BACKGROUNDCOLOR)
 #insert our background to the screen
 windowSurface.blit(backgroundImage, (0,0))
 #text element for the game
-drawText('Jungle Chameleon', font, windowSurface, 300, 250)
+drawText('Jungle Chameleon', font, windowSurface, 300, 230)
 drawText('Press space to start.', font, windowSurface, 300, 300)
 drawText("1 for green", small_font, windowSurface, 300, 360)
 drawText("2 for red", small_font, windowSurface, 300, 400)
 drawText("3 for yellow", small_font, windowSurface, 300, 440)
 drawText("4 for blue", small_font, windowSurface, 300, 480)
-
+drawText("Lives:",small_font, windowSurface, 390, 40)
+draw_lives()
 pygame.display.update()
 waitForPlayerToPressKey()
 
