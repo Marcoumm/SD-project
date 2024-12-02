@@ -186,7 +186,6 @@ def GameOver(score, topScore):
 
 def draw_lives():
 	for i in range(LIVES):
-		
 		windowSurface.blit(flower, (WINDOWWIDTH - (LIVES * flower_width + (LIVES - 1) * 10) - 20 + i * (flower_width + 10), 20))
 
 # Set up pygame, the window, and the mouse cursor.
@@ -313,6 +312,11 @@ windowSurface.blit(backgroundImage, (0,0))
 #text element for the game
 drawText('Jungle Chameleon', font, windowSurface, 300, 250)
 drawText('Press space to start.', font, windowSurface, 300, 300)
+drawText("1 for green", small_font, windowSurface, 300, 360)
+drawText("2 for red", small_font, windowSurface, 300, 400)
+drawText("3 for yellow", small_font, windowSurface, 300, 440)
+drawText("4 for blue", small_font, windowSurface, 300, 480)
+
 pygame.display.update()
 waitForPlayerToPressKey()
 
