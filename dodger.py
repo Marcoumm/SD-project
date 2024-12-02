@@ -186,8 +186,8 @@ def GameOver(score, topScore):
 
 def draw_lives():
 	for i in range(LIVES):
-		if LIVES > 0:
-			windowSurface.blit(flower, (WINDOWWIDTH - (LIVES * flower_width + (LIVES - 1) * 10) - 20 + i * (flower_width + 10), 20))
+		
+		windowSurface.blit(flower, (WINDOWWIDTH - (LIVES * flower_width + (LIVES - 1) * 10) - 20 + i * (flower_width + 10), 20))
 
 # Set up pygame, the window, and the mouse cursor.
 pygame.init()
@@ -326,6 +326,7 @@ while True:
 	GoodFood = []
 	#BadFood means predators / bonus and malus
 	BadFood = []
+	LIVES = 3
 	score = 0
 	doublePointsActive = False
 	doublePointsTimer = 0
@@ -501,16 +502,14 @@ while True:
 			windowSurface.blit(b.surface, b.rect)
 
 		applySpotMalusEffect(windowSurface)
-		applyBugMalusEffect
+		applyBugMalusEffect(windowSurface)
 		update()
 
 		pygame.display.update()
 
 		# Check if any of the baddies have hit the player.
-		if not playerHasHitBadFood(playerRect, BadFood, BadFoodSound):
+		if not playerHasHitBadFood(playerRect, BadFood):
 			if LIVES <= 0:
-				if score > topScore:
-					topscore = score 
 				topScore = GameOver(score, topScore)
 				break
 		
