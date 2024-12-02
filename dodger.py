@@ -9,8 +9,9 @@ WINDOWHEIGHT = 600
 TEXTCOLOR = (255, 140, 0)
 FPS = 60
 BACKGROUNDCOLOR = (210, 255, 200)
-#create a variable live, player has 3 lives at the beginning
+#create a variable live, player has 3 lives at the beginning and max 6 lives during the game
 LIVES = 3
+MAX_LIVES = 6
 
 GOODFOODMINSIZE = 40
 GOODFOODMAXSIZE = 60
@@ -81,26 +82,26 @@ def drawText(text, font, surface, center_x, center_y):
 	surface.blit(textobj, textrect)
 
 
-def playerHasHitBadFood(playerRect, BadFood):
-	global LIVES, doublePointsActive, doublePointsTimer, spotVisible, spotTime, bugMoveActive, bugMoveTimer
+def playerHasHitBadFood(playerRect, BadFood, BadFoodSound):
+	global LIVES, MAX_LIVES, doublePointsActive, doublePointsTimer, spotVisible, spotTime, bugMoveActive, bugMoveTimer
 	for b in BadFood[:]:
 		if isinstance(b, GameElement):
 			if playerRect.colliderect(b.rect):
+				b.playTouchingSound()
 				if b.color == "bonus":  # Check if it's a bonus item
-					LIVES += 1 #Restore a life
-					BonusSound.play()
+					addLives()
 				elif b.color == "doublebonus":
 					doublePointsActive = True
 					doublePointsTimer = pygame.time.get_ticks()
-					BonusSound.play()
+
 				elif b.color == "spotmalus":
 					spotVisible = True
 					spotTime = pygame.time.get_ticks()
-					MalusSound.play()
+					
 				elif b.color == "malus":
 					bugMoveActive = True
 					bugMoveTimer = pygame.time.get_ticks()
-					MalusSound.play()
+					
 				else: 
 					LIVES -= 1
 				BadFood.remove(b)
@@ -108,11 +109,13 @@ def playerHasHitBadFood(playerRect, BadFood):
 				if LIVES > 0:
 					return False
 				break
+		if LIVES <= 0:
+			topScore = GameOver(score, topScore)
+			break
 	return None
 
 		# score with match color good food with player color
 def playerHasHitGoodFood(playerRect, GoodFood, currentColor):
-	global LIVES
 	for food in GoodFood:
 		if isinstance(food, GameElement):
 			if playerRect.colliderect(food.rect) and not food.isTouched():
@@ -140,7 +143,7 @@ def applySpotMalusEffect(WindowSurface):
         # Check if the effect should still be visible (e.g., for 3 seconds)
         if elapsedTime < SPOT_DURATION:
             # Draw the spotmalus PNG image at the center of the screen (or wherever you want)
-            spot_rect = Spot.get_rect(center=(WindowSurface.get_width() // 2, windowSurface.get_height() // 2))  # Example: center the spot
+            spot_rect = Spot.get_rect(center=(windowSurface.get_width() // 2, windowSurface.get_height() // 2))  # Example: center the spot
             windowSurface.blit(Spot, spot_rect)
         else:
             # Once the time has passed, stop showing the effect
@@ -151,7 +154,7 @@ def applyBugMalusEffect(windowSurfacte):
 	if bugMoveActive :
 		currentTime = pygame.time.get_ticks()
 		if currentTime - bugMoveTimer >= BUG_MOVE_DURATION:
-			bugMoveActive
+			bugMoveActive = False
 
 
 #function for bonus
@@ -162,7 +165,10 @@ def update():
         if pygame.time.get_ticks() - doublePointsTimer >= 8000:
             doublePointsActive = False
 
-
+def addLives():
+    global LIVES, MAX_LIVES
+    if LIVES < MAX_LIVES:
+        LIVES += 1
 
 #gameover function
 def GameOver(score, topScore):
@@ -318,7 +324,6 @@ currentColor = PLAYER_COLOR_GREEN
 topScore = 0
 
 speedMultiplier = 1.0
-# bonus / malus effect
 
 while True:
 	
@@ -326,7 +331,6 @@ while True:
 	GoodFood = []
 	#BadFood means predators / bonus and malus
 	BadFood = []
-	LIVES = 3
 	score = 0
 	doublePointsActive = False
 	doublePointsTimer = 0
@@ -508,11 +512,7 @@ while True:
 		pygame.display.update()
 
 		# Check if any of the baddies have hit the player.
-		if not playerHasHitBadFood(playerRect, BadFood):
-			if LIVES <= 0:
-				topScore = GameOver(score, topScore)
-				BadFoodSound.play()
-				break
+		playerHasHitBadFood(playerRect, BadFood, BadFoodSound)
 		
 		# Check if any good food have hit the player
 		collision_result = playerHasHitGoodFood(playerRect, GoodFood, currentColor)
@@ -535,5 +535,6 @@ while True:
 
 		mainClock.tick(FPS)
 
-
+# max 6 vies
+# texte sur l'affichage avec les chiffres 1234 liés aux couleurs
 	
