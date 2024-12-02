@@ -89,7 +89,8 @@ def playerHasHitBadFood(playerRect, BadFood, BadFoodSound):
 			if playerRect.colliderect(b.rect):
 				b.playTouchingSound()
 				if b.color == "bonus":  # Check if it's a bonus item
-					addLives()
+					if LIVES < MAX_LIVES:
+						LIVES += 1
 				elif b.color == "doublebonus":
 					doublePointsActive = True
 					doublePointsTimer = pygame.time.get_ticks()
@@ -101,7 +102,7 @@ def playerHasHitBadFood(playerRect, BadFood, BadFoodSound):
 				elif b.color == "malus":
 					bugMoveActive = True
 					bugMoveTimer = pygame.time.get_ticks()
-					
+			
 				else: 
 					LIVES -= 1
 				BadFood.remove(b)
@@ -109,9 +110,6 @@ def playerHasHitBadFood(playerRect, BadFood, BadFoodSound):
 				if LIVES > 0:
 					return False
 				break
-		if LIVES <= 0:
-			topScore = GameOver(score, topScore)
-			break
 	return None
 
 		# score with match color good food with player color
@@ -165,10 +163,6 @@ def update():
         if pygame.time.get_ticks() - doublePointsTimer >= 8000:
             doublePointsActive = False
 
-def addLives():
-    global LIVES, MAX_LIVES
-    if LIVES < MAX_LIVES:
-        LIVES += 1
 
 #gameover function
 def GameOver(score, topScore):
@@ -191,8 +185,9 @@ def GameOver(score, topScore):
 	return topScore
 
 def draw_lives():
-    for i in range(LIVES):
-        windowSurface.blit(flower, (WINDOWWIDTH - (LIVES * flower_width + (LIVES - 1) * 10) - 20 + i * (flower_width + 10), 20))
+	for i in range(LIVES):
+		if LIVES > 0:
+			windowSurface.blit(flower, (WINDOWWIDTH - (LIVES * flower_width + (LIVES - 1) * 10) - 20 + i * (flower_width + 10), 20))
 
 # Set up pygame, the window, and the mouse cursor.
 pygame.init()
@@ -512,7 +507,12 @@ while True:
 		pygame.display.update()
 
 		# Check if any of the baddies have hit the player.
-		playerHasHitBadFood(playerRect, BadFood, BadFoodSound)
+		if not playerHasHitBadFood(playerRect, BadFood, BadFoodSound):
+			if LIVES <= 0:
+				if score > topScore:
+					topscore = score 
+				topScore = GameOver(score, topScore)
+				break
 		
 		# Check if any good food have hit the player
 		collision_result = playerHasHitGoodFood(playerRect, GoodFood, currentColor)
