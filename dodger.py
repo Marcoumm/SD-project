@@ -175,6 +175,7 @@ def GameOver(score, topScore):
 	#draw game over screen
 	drawText('GAME OVER', font, windowSurface, 300, 250)
 	drawText('Press space to play again.', font, windowSurface, 300, 300)
+	draw_lives(isGameOver=True)
 	pygame.display.update()
 	
 	#wait player to press space
@@ -184,7 +185,9 @@ def GameOver(score, topScore):
 
 	return topScore
 
-def draw_lives():
+def draw_lives(isGameOver = False):
+	if isGameOver:
+		return
 	for i in range(LIVES):
 		windowSurface.blit(flower, (WINDOWWIDTH - (LIVES * flower_width + (LIVES - 1) * 10) - 20 + i * (flower_width + 10), 20))
 
@@ -317,7 +320,7 @@ drawText("2 for red", small_font, windowSurface, 300, 400)
 drawText("3 for yellow", small_font, windowSurface, 300, 440)
 drawText("4 for blue", small_font, windowSurface, 300, 480)
 drawText("Lives:",small_font, windowSurface, 390, 40)
-draw_lives()
+draw_lives(isGameOver = False)
 pygame.display.update()
 waitForPlayerToPressKey()
 
@@ -501,7 +504,7 @@ while True:
 		# Draw the score, top score and lives
 		drawText('Score: %s' % (score), small_font, windowSurface, 85, 40)
 		drawText('Top Score: %s' % (topScore), small_font, windowSurface, 110, 80)
-		draw_lives()
+		draw_lives(isGameOver = False)
 
 		# Draw each element.
 		for b in BadFood:
