@@ -82,7 +82,7 @@ def drawText(text, font, surface, center_x, center_y):
 	surface.blit(textobj, textrect)
 
 
-def playerHasHitBadFood(playerRect, BadFood, BadFoodSound):
+def playerHasHitBadFood(playerRect, BadFood):
 	global LIVES, MAX_LIVES, doublePointsActive, doublePointsTimer, spotVisible, spotTime, bugMoveActive, bugMoveTimer
 	for b in BadFood[:]:
 		if isinstance(b, GameElement):
