@@ -9,9 +9,6 @@ WINDOWHEIGHT = 600
 TEXTCOLOR = (255, 140, 0)
 FPS = 60
 BACKGROUNDCOLOR = (210, 255, 200)
-#create a variable live, player has 3 lives at the beginning and max 6 lives during the game
-LIVES = 3
-MAX_LIVES = 6
 
 GOODFOODMINSIZE = 40
 GOODFOODMAXSIZE = 60
@@ -83,14 +80,14 @@ def drawText(text, font, surface, center_x, center_y):
 
 
 def playerHasHitBadFood(playerRect, BadFood):
-	global LIVES, MAX_LIVES, doublePointsActive, doublePointsTimer, spotVisible, spotTime, bugMoveActive, bugMoveTimer
+	global lives, maxLives, doublePointsActive, doublePointsTimer, spotVisible, spotTime, bugMoveActive, bugMoveTimer
 	for b in BadFood[:]:
 		if isinstance(b, GameElement):
 			if playerRect.colliderect(b.rect):
 				b.playTouchingSound()
 				if b.color == "bonus":  # Check if it's a bonus item
-					if LIVES < MAX_LIVES:
-						LIVES += 1
+					if lives < maxLives:
+						lives += 1
 				elif b.color == "doublebonus":
 					doublePointsActive = True
 					doublePointsTimer = pygame.time.get_ticks()
@@ -104,10 +101,10 @@ def playerHasHitBadFood(playerRect, BadFood):
 					bugMoveTimer = pygame.time.get_ticks()
 			
 				else: 
-					LIVES -= 1
+					lives -= 1
 				BadFood.remove(b)
 				
-				if LIVES > 0:
+				if lives > 0:
 					return False
 				break
 	return None
@@ -129,7 +126,7 @@ def playerHasHitGoodFood(playerRect, GoodFood, currentColor):
 					return "wrong"
 	return None
 
-#function malu spot
+#function malus spot
 def applySpotMalusEffect(WindowSurface):
     global spotVisible, spotTime, Spot
     
@@ -146,6 +143,8 @@ def applySpotMalusEffect(WindowSurface):
         else:
             # Once the time has passed, stop showing the effect
             spotVisible = False
+
+#function Bug malus
 def applyBugMalusEffect(windowSurfacte):
 	global bugMoveActive, bugMoveTimer, Malus
 
@@ -175,7 +174,7 @@ def GameOver(score, topScore):
 	#draw game over screen
 	drawText('GAME OVER', font, windowSurface, 300, 250)
 	drawText('Press space to play again.', font, windowSurface, 300, 300)
-	draw_lives(isGameOver=True)
+	drawLives(lives)
 	pygame.display.update()
 	
 	#wait player to press space
@@ -185,11 +184,9 @@ def GameOver(score, topScore):
 
 	return topScore
 
-def draw_lives(isGameOver = False):
-	if isGameOver:
-		return
-	for i in range(LIVES):
-		windowSurface.blit(flower, (WINDOWWIDTH - (LIVES * flower_width + (LIVES - 1) * 10) - 20 + i * (flower_width + 10), 20))
+def drawLives(lives):
+	for i in range(lives):
+		windowSurface.blit(flower, (WINDOWWIDTH - (lives * flower_width + (lives - 1) * 10) - 20 + i * (flower_width + 10), 20))
 
 # Set up pygame, the window, and the mouse cursor.
 pygame.init()
@@ -245,7 +242,7 @@ Spot = pygame.image.load("tache.png").convert_alpha()
 Spot = pygame.transform.scale(Spot, (600, 600))
 
 #Import Element 
-GoodFoodImages = {
+goodFoodImages = {
 	PLAYER_COLOR_GREEN: pygame.image.load("grasshoppergreen.png"),
 	PLAYER_COLOR_RED: pygame.image.load("grasshopperred.png"),
 	PLAYER_COLOR_YELLOW: pygame.image.load("grasshopperyellow.png"),
@@ -277,7 +274,7 @@ SnakeImages = {
 	PLAYER_COLOR_BLUE: pygame.image.load("snakeblue.png"),
 }
 
-BadFoodItems = {
+badFoodItems = {
     "alligator": AlligatorImages,
     "owl": OwlImages,
     "snake": SnakeImages,
@@ -288,7 +285,7 @@ BadFoodItems = {
 	"spotmalus": SpotMalus
 }
 
-BadFoodSound = {
+badFoodSound = {
 	"alligator": AlligatorSound,
 	"owl": OwlSound,
 	"snake": SnakeSound,
@@ -312,6 +309,14 @@ backgroundImage = pygame.transform.scale(backgroundImage, windowSurface.get_size
 windowSurface.fill(BACKGROUNDCOLOR)
 #insert our background to the screen
 windowSurface.blit(backgroundImage, (0,0))
+
+#set up values
+# Default game values
+currentColor = PLAYER_COLOR_GREEN
+lives = 3
+maxLives = 6
+topScore = 0
+
 #text element for the game
 drawText('Jungle Chameleon', font, windowSurface, 300, 230)
 drawText('Press space to start.', font, windowSurface, 300, 300)
@@ -320,24 +325,19 @@ drawText("2 for red", small_font, windowSurface, 300, 400)
 drawText("3 for yellow", small_font, windowSurface, 300, 440)
 drawText("4 for blue", small_font, windowSurface, 300, 480)
 drawText("Lives:",small_font, windowSurface, 390, 40)
-draw_lives(isGameOver = False)
+drawLives(lives)
 pygame.display.update()
 waitForPlayerToPressKey()
-
-# Default game values
-currentColor = PLAYER_COLOR_GREEN
-
-topScore = 0
 
 speedMultiplier = 1.0
 
 while True:
 	
 	# Set up the start of the game.
-	GoodFood = []
+	goodFood = []
 	#BadFood means predators / bonus and malus
-	BadFood = []
-	LIVES = 3
+	badFood = []
+	lives = 3
 	score = 0
 	doublePointsActive = False
 	doublePointsTimer = 0
@@ -347,9 +347,8 @@ while True:
 	playerRect.topleft = (WINDOWWIDTH / 2, WINDOWHEIGHT -80)
 	moveLeft = moveRight = False
 	reverseCheat = slowCheat = False
-	PredatorAddCounter = 0
-	GoodFoodAddCounter = 0
-	BadFoodAddCounter = 0
+	goodFoodAddCounter = 0
+	badFoodAddCounter = 0
 	pygame.mixer.music.play(-1, 0.0)
 
 	
@@ -393,10 +392,16 @@ while True:
 			if event.type == KEYUP:
 				if event.key == K_z:
 					reverseCheat = False
-					score = 0
+					if score >= 30:
+						score -= 30
+					else:
+						score = 0
 				if event.key == K_x:
 					slowCheat = False
-					score = 0
+					if score >= 30:
+						score -=30
+					else:
+						score = 0
 				if event.key == K_ESCAPE:
 					terminate()
 
@@ -407,41 +412,41 @@ while True:
 
 		# --------- Adding good food ---------
 		if not reverseCheat and not slowCheat:
-				GoodFoodAddCounter += 1
+				goodFoodAddCounter += 1
 
-		if GoodFoodAddCounter == ADDNEWGOODFOODRATE:
-			GoodFoodAddCounter = 0
-			GoodFoodSize = random.randint(GOODFOODMINSIZE, GOODFOODMAXSIZE)
+		if goodFoodAddCounter == ADDNEWGOODFOODRATE:
+			goodFoodAddCounter = 0
+			goodFoodSize = random.randint(GOODFOODMINSIZE, GOODFOODMAXSIZE)
 		
 			# call class
-			randomColor = random.choice(list(GoodFoodImages.keys()))
-			newGoodFood = GameElement(WINDOWWIDTH, WINDOWHEIGHT, randomColor, random.randint(0, WINDOWWIDTH - GoodFoodSize), 0 - GoodFoodSize, GoodFoodSize, random.randint(GOODFOODMINSPEED, GOODFOODMAXSPEED), GoodFoodImages[randomColor], BonusSound)
+			randomColor = random.choice(list(goodFoodImages.keys()))
+			newGoodFood = GameElement(WINDOWWIDTH, WINDOWHEIGHT, randomColor, random.randint(0, WINDOWWIDTH - goodFoodSize), 0 - goodFoodSize, goodFoodSize, random.randint(GOODFOODMINSPEED, GOODFOODMAXSPEED), goodFoodImages[randomColor], BonusSound)
 
 
-			GoodFood.append(newGoodFood)
+			goodFood.append(newGoodFood)
 
 		# --------- Adding baddies --------- 
 		if not reverseCheat and not slowCheat:
-			BadFoodAddCounter += 1
+			badFoodAddCounter += 1
 
-		if BadFoodAddCounter == ADDNEWBADFOODRATE:
-			BadFoodAddCounter = 0
+		if badFoodAddCounter == ADDNEWBADFOODRATE:
+			badFoodAddCounter = 0
 			BadFoodSize = random.randint(BADFOODMINSIZE, BADFOODMAXSIZE)
 			
 			#call class
-			randomType = random.choice(list(BadFoodItems.keys()))
+			randomType = random.choice(list(badFoodItems.keys()))
 			#malus and bonus haven't key color, separate them
 			if randomType in ["bonus", "malus", "doublebonus", "spotmalus"]:
-				newBadFoodImage = BadFoodItems[randomType]
-				sound = BadFoodSound[randomType]
+				newBadFoodImage = badFoodItems[randomType]
+				sound = badFoodSound[randomType]
 			else:
-				randomColor = random.choice(list(BadFoodItems[randomType].keys()))
-				sound = BadFoodSound[randomType]
-				newBadFoodImage = BadFoodItems[randomType][randomColor]
+				randomColor = random.choice(list(badFoodItems[randomType].keys()))
+				sound = badFoodSound[randomType]
+				newBadFoodImage = badFoodItems[randomType][randomColor]
 			# Create the new bad food (or animal) GameElement
 			newBadFood = GameElement(WINDOWWIDTH, WINDOWHEIGHT, randomType, random.randint(0, WINDOWWIDTH - BadFoodSize), 0 - BadFoodSize, BadFoodSize, random.randint(BADFOODMINSPEED, BADFOODMAXSPEED), newBadFoodImage, touchingSound=sound)
 			
-			BadFood.append(newBadFood)
+			badFood.append(newBadFood)
 		# --------- Movements ---------
 
 		# Move the player around.
@@ -461,14 +466,14 @@ while True:
 		# increase speed game due to score
 		speedMultiplier = 1 + (score//10) * 0.2
 		# Move the baddies down.
-		for b in BadFood:
+		for b in badFood:
 			if not reverseCheat and not slowCheat:
 				b.rect.move_ip(0, b.speed*speedMultiplier)
 			elif reverseCheat:
 				b.rect.move_ip(0, -5)
 			elif slowCheat:
 				b.rect.move_ip(0, 1)
-		for b in GoodFood:
+		for b in goodFood:
 			if not reverseCheat and not slowCheat:
 				b.rect.move_ip(0, b.speed*speedMultiplier)
 			elif reverseCheat:
@@ -477,12 +482,12 @@ while True:
 				b.rect.move_ip(0, 1)
 
 		# Delete  element that have fallen past the bottom.
-		for b in BadFood[:]:
+		for b in badFood[:]:
 			if b.rect.top > WINDOWHEIGHT:
-				BadFood.remove(b)
-		for b in GoodFood [:]:
+				badFood.remove(b)
+		for b in goodFood [:]:
 			if b.rect.top > WINDOWHEIGHT:
-				GoodFood.remove(b)
+				goodFood.remove(b)
 
 		# --------- Display everything on the window. ---------
 		# Window clear
@@ -504,12 +509,12 @@ while True:
 		# Draw the score, top score and lives
 		drawText('Score: %s' % (score), small_font, windowSurface, 85, 40)
 		drawText('Top Score: %s' % (topScore), small_font, windowSurface, 110, 80)
-		draw_lives(isGameOver = False)
+		drawLives(lives)
 
 		# Draw each element.
-		for b in BadFood:
+		for b in badFood:
 			windowSurface.blit(b.surface, b.rect)
-		for b in GoodFood:
+		for b in goodFood:
 			windowSurface.blit(b.surface, b.rect)
 
 		applySpotMalusEffect(windowSurface)
@@ -519,20 +524,22 @@ while True:
 		pygame.display.update()
 
 		# Check if any of the baddies have hit the player.
-		if not playerHasHitBadFood(playerRect, BadFood):
-			if LIVES <= 0:
+		if not playerHasHitBadFood(playerRect, badFood):
+			if lives <= 0:
+				if score > topScore:
+					topScore = score
 				topScore = GameOver(score, topScore)
 				break
 		
 		# Check if any good food have hit the player
-		collision_result = playerHasHitGoodFood(playerRect, GoodFood, currentColor)
+		collision_result = playerHasHitGoodFood(playerRect, goodFood, currentColor)
 		if collision_result == "wrong":
-			LIVES -= 1
-			if LIVES > 0:
+			lives -= 1
+			if lives > 0:
 				pass
-			elif LIVES <= 0:
+			elif lives <= 0:
 				if score > topScore:
-					topscore = score
+					topScore = score
 				topScore = GameOver(score, topScore)
 				break
 		elif collision_result == "match":
