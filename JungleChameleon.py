@@ -3,7 +3,7 @@ from pygame.locals import *
 
 from FPS import FPS
 
-#program basic setting
+# ------ basic settings -----
 WINDOWWIDTH = 600
 WINDOWHEIGHT = 600
 TEXTCOLOR = (255, 140, 0)
@@ -53,7 +53,7 @@ class GameElement:
 		if self.touchingSound:
 			self.touchingSound.play()
 
-#create my function
+# ----- functions -----
 
 def terminate():
 	pygame.quit()
@@ -124,7 +124,7 @@ def playerHasHitGoodFood(playerRect, GoodFood, currentColor):
 	return None
 
 #function malus spot
-def applySpotMalusEffect(WindowSurface):
+def applySpotMalusEffect():
     global spotVisible, spotTime, Spot
     
     if spotVisible and Spot:
@@ -142,7 +142,7 @@ def applySpotMalusEffect(WindowSurface):
             spotVisible = False
 
 #function Bug malus
-def applyBugMalusEffect(windowSurfacte):
+def applyBugMalusEffect():
 	global bugMoveActive, bugMoveTimer, Malus
 	if bugMoveActive :
 		currentTime = pygame.time.get_ticks()
@@ -183,7 +183,10 @@ def GameOver(score, topScore):
 # draw Lives on the screen
 def drawLives(lives):
 	for i in range(lives):
-		windowSurface.blit(flower, (WINDOWWIDTH - (lives * flower_width + (lives - 1) * 10) - 20 + i * (flower_width + 10), 20))
+		windowSurface.blit(flower, (WINDOWWIDTH - (lives * flowerWidth + (lives - 1) * 10) - 20 + i * (flowerWidth + 10), 20))
+
+
+# --------- Import element ---------
 
 # Set up the game and the screen
 pygame.init()
@@ -204,8 +207,8 @@ gameOverSound.set_volume(0.1)
 #illustration of lives: flowers
 flower = pygame.image.load("pinkflower.png")
 flower = pygame.transform.scale(flower, (40, 40))
-flower_width = flower.get_width()
-flower_height = flower.get_height()
+flowerWidth = flower.get_width()
+flowerHeight = flower.get_height()
 
 # all our color cameleon
 playerImageBlue = pygame.image.load('camblue.png')
@@ -351,7 +354,7 @@ while True:
 	badFoodAddCounter = 0
 	pygame.mixer.music.play(-1, 0.0)
 
-	
+	# --------- Game loop ---------
 
 	while True: # The game loop runs while the game part is playing. 
 
@@ -523,9 +526,8 @@ while True:
 			windowSurface.blit(b.surface, b.rect)
 
 		# Draw the malus 
-		applySpotMalusEffect(windowSurface)
-		applyBugMalusEffect(windowSurface)
-		#applyDoublePointsBonus()
+		applySpotMalusEffect()
+		applyBugMalusEffect()
 
 		pygame.display.update()
 
