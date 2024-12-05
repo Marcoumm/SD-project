@@ -25,7 +25,6 @@ ADDNEWBADFOODRATE = 40
 PLAYERMOVERATE = 5
 SPOT_DURATION = 5000
 BUG_MOVE_DURATION = 3000
-BUG_MOVE_INTENSITY = 5
 
 #color
 PLAYER_COLOR_GREEN = 1
@@ -109,19 +108,17 @@ def playerHasHitBadFood(playerRect, BadFood):
 				break
 	return None
 
-		# score with match color good food with player color
+		# check if it's a match between food's color and player's color
 def playerHasHitGoodFood(playerRect, GoodFood, currentColor):
 	for food in GoodFood:
 		if isinstance(food, GameElement):
 			if playerRect.colliderect(food.rect) and not food.isTouched():
 				food.touch()
+				GoodFood.remove(food)
 				if food.color == currentColor:
-					GoodFood.remove(food)
 					BonusSound.play()
 					return "match"
-				
 				else:
-					GoodFood.remove(food)
 					MalusSound.play()
 					return "wrong"
 	return None
@@ -131,23 +128,22 @@ def applySpotMalusEffect(WindowSurface):
     global spotVisible, spotTime, Spot
     
     if spotVisible and Spot:
-        # Calculate how long the effect has been active
+        # calculate time during the spot has been active
         currentTime = pygame.time.get_ticks()
         elapsedTime = currentTime - spotTime
         
-        # Check if the effect should still be visible (e.g., for 3 seconds)
+        # Check if the effect should still be visible  (max 5000)
         if elapsedTime < SPOT_DURATION:
-            # Draw the spotmalus PNG image at the center of the screen (or wherever you want)
-            spot_rect = Spot.get_rect(center=(windowSurface.get_width() // 2, windowSurface.get_height() // 2))  # Example: center the spot
+            # Draw the spotmalus image at the center
+            spot_rect = Spot.get_rect(center=(windowSurface.get_width() // 2, windowSurface.get_height() // 2)) 
             windowSurface.blit(Spot, spot_rect)
         else:
-            # Once the time has passed, stop showing the effect
+            # erase the spot
             spotVisible = False
 
 #function Bug malus
 def applyBugMalusEffect(windowSurfacte):
 	global bugMoveActive, bugMoveTimer, Malus
-
 	if bugMoveActive :
 		currentTime = pygame.time.get_ticks()
 		if currentTime - bugMoveTimer >= BUG_MOVE_DURATION:
@@ -155,7 +151,7 @@ def applyBugMalusEffect(windowSurfacte):
 
 
 #function for bonus
-def update():
+def applyDoublePointsBonus():
     global doublePointsActive, doublePointsTimer
     if doublePointsActive:
         # Check that 5 seconds passed
@@ -184,11 +180,12 @@ def GameOver(score, topScore):
 
 	return topScore
 
+# draw Lives on the screen
 def drawLives(lives):
 	for i in range(lives):
 		windowSurface.blit(flower, (WINDOWWIDTH - (lives * flower_width + (lives - 1) * 10) - 20 + i * (flower_width + 10), 20))
 
-# Set up pygame, the window, and the mouse cursor.
+# Set up the game and the screen
 pygame.init()
 mainClock = pygame.time.Clock()
 windowSurface = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
@@ -196,25 +193,15 @@ pygame.display.set_caption('Jungle')
 pygame.mouse.set_visible(False)
 
 
-# Set up sounds.
+# Set up sound of the game and the game-over sound
 pygame.mixer.music.load('jungle.wav')
 gameOverSound = pygame.mixer.Sound('gameover.wav')
-MalusSound = pygame.mixer.Sound("malus.wav")
-BonusSound = pygame.mixer.Sound("bonus.wav")
-AlligatorSound = pygame.mixer.Sound("Alligator.wav")
-EagleSound = pygame.mixer.Sound("Eagle.wav")
-OwlSound = pygame.mixer.Sound("Owl.wav")
-SnakeSound = pygame.mixer.Sound("snake.wav")
-
 #diminue volume
 gameOverSound.set_volume(0.1)
-MalusSound.set_volume(0.8)
-AlligatorSound.set_volume(0.3)
-EagleSound.set_volume(0.3)
-OwlSound.set_volume(0.3)
-SnakeSound.set_volume(0.3)
-# Set up images.
-#flower
+
+
+# Set up images
+#illustration of lives: flowers
 flower = pygame.image.load("pinkflower.png")
 flower = pygame.transform.scale(flower, (40, 40))
 flower_width = flower.get_width()
@@ -231,9 +218,10 @@ playerImageBlue = pygame.transform.scale(playerImageBlue, (70, 70))
 playerImageRed = pygame.transform.scale(playerImageRed, (70, 70))
 playerImageYellow = pygame.transform.scale(playerImageYellow, (70, 70))
 
-
+#define the player as a rect.
 playerRect = playerImageGreen.get_rect()
 
+#import design of bonus/malus
 Bonus = pygame.image.load("heart.png")
 DoublePointsBonus = pygame.image.load("plus.png")
 Malus = pygame.image.load("mushroom.png")
@@ -241,7 +229,7 @@ SpotMalus = pygame.image.load("tache.png")
 Spot = pygame.image.load("tache.png").convert_alpha()
 Spot = pygame.transform.scale(Spot, (600, 600))
 
-#Import Element 
+#Import Element of each color
 goodFoodImages = {
 	PLAYER_COLOR_GREEN: pygame.image.load("grasshoppergreen.png"),
 	PLAYER_COLOR_RED: pygame.image.load("grasshopperred.png"),
@@ -285,19 +273,30 @@ badFoodItems = {
 	"spotmalus": SpotMalus
 }
 
+#set up sound for each type of content
+MalusSound = pygame.mixer.Sound("malus.wav")
+BonusSound = pygame.mixer.Sound("bonus.wav")
+
 badFoodSound = {
-	"alligator": AlligatorSound,
-	"owl": OwlSound,
-	"snake": SnakeSound,
-	"eagle": EagleSound,
+	"alligator": pygame.mixer.Sound("Alligator.wav"),
+	"owl": pygame.mixer.Sound("Owl.wav"),
+	"snake": pygame.mixer.Sound("snake.wav"),
+	"eagle": pygame.mixer.Sound("Eagle.wav"),
 	"bonus": BonusSound,
 	"doublebonus": BonusSound,
 	"malus": MalusSound,
 	"spotmalus": MalusSound
 }
+#set up volumes for these sound
+badFoodSound["alligator"].set_volume(0.3)
+badFoodSound["eagle"].set_volume(0.3)
+badFoodSound["owl"].set_volume(0.3)
+badFoodSound["snake"].set_volume(0.3)
+MalusSound.set_volume(0.8)
+
 #upload font type
 font = pygame.font.Font("Tropiland.ttf", 48)
-small_font = pygame.font.Font("Tropiland.ttf", 35)
+smallFont = pygame.font.Font("Tropiland.ttf", 35)
 
 #set up background
 backgroundImage = pygame.image.load('background.png')
@@ -320,15 +319,16 @@ topScore = 0
 #text element for the game
 drawText('Jungle Chameleon', font, windowSurface, 300, 230)
 drawText('Press space to start.', font, windowSurface, 300, 300)
-drawText("1 for green", small_font, windowSurface, 300, 360)
-drawText("2 for red", small_font, windowSurface, 300, 400)
-drawText("3 for yellow", small_font, windowSurface, 300, 440)
-drawText("4 for blue", small_font, windowSurface, 300, 480)
-drawText("Lives:",small_font, windowSurface, 390, 40)
+drawText("1 for green", smallFont, windowSurface, 300, 360)
+drawText("2 for red", smallFont, windowSurface, 300, 400)
+drawText("3 for yellow", smallFont, windowSurface, 300, 440)
+drawText("4 for blue", smallFont, windowSurface, 300, 480)
+drawText("Lives:",smallFont, windowSurface, 390, 40)
 drawLives(lives)
 pygame.display.update()
 waitForPlayerToPressKey()
 
+#increase the speed of the game with the score
 speedMultiplier = 1.0
 
 while True:
@@ -369,6 +369,7 @@ while True:
 					reverseCheat = True
 				if event.key == K_x:
 					slowCheat = True
+				# you can also use a or d to move
 				if event.key == K_LEFT or event.key == K_a:
 					moveRight = False
 					moveLeft = True
@@ -376,7 +377,7 @@ while True:
 					moveLeft = False
 					moveRight = True
 			
-		#import keys 
+		#import keys (1,2,3,4)
 			keys = pygame.key.get_pressed()
 				#keys linked to color
 			if keys[pygame.K_1]:
@@ -392,6 +393,7 @@ while True:
 			if event.type == KEYUP:
 				if event.key == K_z:
 					reverseCheat = False
+					# if you want to reverse the game direction or make the game slower, you lose max 30 points
 					if score >= 30:
 						score -= 30
 					else:
@@ -425,7 +427,7 @@ while True:
 
 			goodFood.append(newGoodFood)
 
-		# --------- Adding baddies --------- 
+		# --------- Adding baddies "bad food" --------- 
 		if not reverseCheat and not slowCheat:
 			badFoodAddCounter += 1
 
@@ -433,7 +435,7 @@ while True:
 			badFoodAddCounter = 0
 			BadFoodSize = random.randint(BADFOODMINSIZE, BADFOODMAXSIZE)
 			
-			#call class
+			#call class Game element
 			randomType = random.choice(list(badFoodItems.keys()))
 			#malus and bonus haven't key color, separate them
 			if randomType in ["bonus", "malus", "doublebonus", "spotmalus"]:
@@ -447,6 +449,7 @@ while True:
 			newBadFood = GameElement(WINDOWWIDTH, WINDOWHEIGHT, randomType, random.randint(0, WINDOWWIDTH - BadFoodSize), 0 - BadFoodSize, BadFoodSize, random.randint(BADFOODMINSPEED, BADFOODMAXSPEED), newBadFoodImage, touchingSound=sound)
 			
 			badFood.append(newBadFood)
+
 		# --------- Movements ---------
 
 		# Move the player around.
@@ -455,6 +458,7 @@ while True:
 		if moveRight and playerRect.right < WINDOWWIDTH:
 			playerRect.move_ip(PLAYERMOVERATE, 0)
 
+		#the bug move active make the player's movement jerky
 		if bugMoveActive:
 			elapsedTime = pygame.time.get_ticks() - bugMoveTimer
 			if elapsedTime <BUG_MOVE_DURATION:
@@ -465,6 +469,7 @@ while True:
 
 		# increase speed game due to score
 		speedMultiplier = 1 + (score//10) * 0.2
+
 		# Move the baddies down.
 		for b in badFood:
 			if not reverseCheat and not slowCheat:
@@ -507,8 +512,8 @@ while True:
 
 
 		# Draw the score, top score and lives
-		drawText('Score: %s' % (score), small_font, windowSurface, 85, 40)
-		drawText('Top Score: %s' % (topScore), small_font, windowSurface, 110, 80)
+		drawText('Score: %s' % (score), smallFont, windowSurface, 85, 40)
+		drawText('Top Score: %s' % (topScore), smallFont, windowSurface, 110, 80)
 		drawLives(lives)
 
 		# Draw each element.
@@ -517,13 +522,14 @@ while True:
 		for b in goodFood:
 			windowSurface.blit(b.surface, b.rect)
 
+		# Draw the malus 
 		applySpotMalusEffect(windowSurface)
 		applyBugMalusEffect(windowSurface)
-		update()
+		#applyDoublePointsBonus()
 
 		pygame.display.update()
 
-		# Check if any of the baddies have hit the player.
+		# Check if any of the bad food have hit the player and check the lives
 		if not playerHasHitBadFood(playerRect, badFood):
 			if lives <= 0:
 				if score > topScore:
@@ -531,7 +537,8 @@ while True:
 				topScore = GameOver(score, topScore)
 				break
 		
-		# Check if any good food have hit the player
+		# Check if any good food have hit the player and check the lives
+		# check if the collisution is a matching color between player and good food
 		collision_result = playerHasHitGoodFood(playerRect, goodFood, currentColor)
 		if collision_result == "wrong":
 			lives -= 1
@@ -552,6 +559,5 @@ while True:
 
 		mainClock.tick(FPS)
 
-# max 6 vies
-# texte sur l'affichage avec les chiffres 1234 liés aux couleurs
+
 	
