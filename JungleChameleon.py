@@ -23,6 +23,7 @@ BADFOODMAXSPEED = 5
 ADDNEWBADFOODRATE = 40
 
 PLAYERMOVERATE = 5
+DOUBLEPOINTSBONUS_DURATION = 8000
 SPOT_DURATION = 5000
 BUG_MOVE_DURATION = 3000
 
@@ -152,11 +153,11 @@ def applyBugMalusEffect():
 
 #function for bonus
 def applyDoublePointsBonus():
-    global doublePointsActive, doublePointsTimer
-    if doublePointsActive:
-        # Check that 5 seconds passed
-        if pygame.time.get_ticks() - doublePointsTimer >= 8000:
-            doublePointsActive = False
+	global doublePointsActive, doublePointsTimer, Bonus
+	if doublePointsActive:
+		timer = pygame.time.get_ticks()
+		if timer - doublePointsTimer >= DOUBLEPOINTSBONUS_DURATION:
+			doublePointsActive = False
 
 
 #gameover function
@@ -528,6 +529,7 @@ while True:
 		# Draw the malus 
 		applySpotMalusEffect()
 		applyBugMalusEffect()
+		applyDoublePointsBonus()
 
 		pygame.display.update()
 
