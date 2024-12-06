@@ -144,7 +144,7 @@ def applySpotMalusEffect():
 
 #function Bug malus
 def applyBugMalusEffect():
-	global bugMoveActive, bugMoveTimer, Malus
+	global bugMoveActive, bugMoveTimer
 	if bugMoveActive :
 		currentTime = pygame.time.get_ticks()
 		if currentTime - bugMoveTimer >= BUG_MOVE_DURATION:
@@ -153,7 +153,7 @@ def applyBugMalusEffect():
 
 #function for bonus
 def applyDoublePointsBonus():
-	global doublePointsActive, doublePointsTimer, Bonus
+	global doublePointsActive, doublePointsTimer
 	if doublePointsActive:
 		timer = pygame.time.get_ticks()
 		if timer - doublePointsTimer >= DOUBLEPOINTSBONUS_DURATION:
